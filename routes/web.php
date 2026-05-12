@@ -18,3 +18,7 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Ruta para el Panel del Cocinero
+Route::get('/cocina', [App\Http\Controllers\CocinaController::class, 'index'])->name('cocina.index');
+Route::post('/cocina/orden/{id}/lista', [App\Http\Controllers\CocinaController::class, 'marcarComoLista'])->name('cocina.marcarLista');
