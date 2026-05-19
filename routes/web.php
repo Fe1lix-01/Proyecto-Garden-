@@ -1,10 +1,10 @@
 
 <?php
-
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth; 
 use App\Http\Controllers\MenuController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/ordenes/guardad', [OrdenController::class, 'store'])->name('ordenes.store');
 
+
     /**
      * NOTA: Mantenemos esta ruta 'dashboard' genérica por si algún componente 
      * de Breeze la busca, pero la lógica de redirección real ya la pusiste 
@@ -47,4 +48,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Ruta para el Panel del Cocinero
+Route::get('/cocina', [App\Http\Controllers\CocinaController::class, 'index'])->name('cocina.index');
+Route::post('/cocina/orden/{id}/lista', [App\Http\Controllers\CocinaController::class, 'marcarComoLista'])->name('cocina.marcarLista');
 
