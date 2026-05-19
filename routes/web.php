@@ -4,6 +4,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth; 
+use App\Http\Controllers\MenuController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -23,9 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('admin.dashboard');
 
     // 3. Ruta para el Cliente
-    Route::get('/cliente/home', function () {
-        return view('cliente.home');
-    })->name('cliente.home');
+    Route::get('/cliente/home', [MenuController::class, 'index'])->name('cliente.home');
 
     Route::get('/cliente/carrito', function () {
         return view('cliente.carrito');
