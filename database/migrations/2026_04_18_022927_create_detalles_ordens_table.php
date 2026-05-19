@@ -11,8 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('detalles_ordens', function (Blueprint $table) {
+        Schema::create('detalle_orden', function (Blueprint $table) {
             $table->id();
+            // Conexión con la tabla 'ordenes' 
+            $table->foreignId('orden_id')->constrained('ordenes')->onDelete('cascade');
+            // Conexión con el platillo
+            $table->foreignId('platillo_id')->constrained('platillos')->onDelete('cascade');
+            $table->integer('cantidad');
+            $table->decimal('precio_unitario', 8, 2);
+            $table->decimal('subtotal', 10, 2);
             $table->timestamps();
         });
     }
@@ -22,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('detalles_ordens');
+        Schema::dropIfExists('detalle_orden');
     }
 };

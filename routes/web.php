@@ -1,20 +1,42 @@
 <?php
-
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth; 
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Rutas protegidas por autenticación
+Route::middleware(['auth', 'verified'])->group(function () {
 
-Route::middleware('auth')->group(function () {
+    // 1. Perfil de usuario (común para ambos roles)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // 2. Ruta para el Administrador / Staff del restaurante
+    Route::get('/admin/dashboard', function () {
+        return view('admin.dashboard'); 
+    })->name('admin.dashboard');
+
+    // 3. Ruta para el Cliente
+    Route::get('/cliente/home', function () {
+        return view('cliente.home');
+    })->name('cliente.home');
+
+    /**
+     * NOTA: Mantenemos esta ruta 'dashboard' genérica por si algún componente 
+     * de Breeze la busca, pero la lógica de redirección real ya la pusiste 
+     * en AuthenticatedSessionController.
+     */
+    Route::get('/dashboard', function () {
+    // Usamos la Facade Auth en lugar del helper auth()
+    if (Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('cliente.home');
+})->name('dashboard');
 });
 
 require __DIR__.'/auth.php';
