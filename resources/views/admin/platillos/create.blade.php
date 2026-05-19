@@ -34,7 +34,7 @@
                                     <option value="{{ $categoria->id }}" 
                                             style="color: #000000 !important; background-color: #ffffff !important;"
                                             {{ old('categoria_id') == $categoria->id ? 'selected' : '' }}>
-                                        {{ $categoria->nombre }}
+                                        {{ $categoria->categoria }}
                                     </option>
                                 @endforeach
                             </select>

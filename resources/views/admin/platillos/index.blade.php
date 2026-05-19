@@ -42,7 +42,7 @@
                                     <td class="py-4 px-4 font-semibold text-gray-900">{{ $platillo->nombre }}</td>
                                     <td class="py-4 px-4">
                                         <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                                            {{ $platillo->categoria->nombre ?? 'Sin categoría' }}
+                                            {{ $platillo->categoria->categoria ?? 'Sin categoría' }}
                                         </span>
                                     </td>
                                     <td class="py-4 px-4 text-gray-600 max-w-xs truncate">{{ $platillo->descripcion }}</td>
