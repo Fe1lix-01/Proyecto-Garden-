@@ -11,26 +11,30 @@
         <div class="flex justify-between h-16">
             <div class="flex">
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('cliente.home') }}">
-                    <!--    <x-application-logo class="block h-9 w-auto fill-current text-gray-800" /> -->
-                        <img src="{{ asset('img/sapos_guapos.jpg') }}" alt="Logo"
-                        alt="Logo Sapos Guapos" 
-                        class="block h-10 w-auto rounded-full shadow">
+                    <a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('cliente.home') }}">
+                        <img src="{{ asset('img/sapos_guapos.jpg') }}" alt="Logo Sapos Guapos" class="block h-10 w-auto rounded-full shadow">
                     </a>
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('cliente.home')" :active="request()->routeIs('cliente.home')">
-                        {{ __('Home') }}
-                    </x-nav-link>
+                    
+                    @if(Auth::user()->role === 'admin')
+                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                            {{ __('Home - Admin') }}
+                        </x-nav-link>
+                    @else
+                        <x-nav-link :href="route('cliente.home')" :active="request()->routeIs('cliente.home')">
+                            {{ __('Home') }}
+                        </x-nav-link>
 
-                    <x-nav-link :href="route('cliente.carrito')" :active="request()->routeIs('cliente.carrito')">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        {{-- {{ __('Mi Carrito') }} --}}    
-                        <span id="cart-count" class="ml-2 bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full text-xs font-bold">0</span>
-                    </x-nav-link>
+                        <x-nav-link :href="route('cliente.carrito') ?? '/carrito'" :active="request()->routeIs('cliente.carrito') || request()->is('carrito')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span id="cart-count" class="ml-2 bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full text-xs font-bold">{{ $totalItems }}</span>
+                        </x-nav-link>
+                    @endif
+
                 </div>
             </div>
 
@@ -55,7 +59,6 @@
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
@@ -79,22 +82,30 @@
 
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+            
+            @if(Auth::user()->role === 'admin')
+                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                    {{ __('Dashboard Admin') }}
+                </x-responsive-nav-link>
+            @else
+                <x-responsive-nav-link :href="route('cliente.home')" :active="request()->routeIs('cliente.home')">
+                    {{ __('Home') }}
+                </x-responsive-nav-link>
 
-            <x-responsive-nav-link href="/carrito" :active="request()->is('carrito')" class="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Tu Carrito
-                
-                @if($totalItems > 0)
-                    <span class="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
-                        {{ $totalItems }}
-                    </span>
-                @endif
-            </x-responsive-nav-link>
+                <x-responsive-nav-link href="/carrito" :active="request()->is('carrito')" class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Tu Carrito
+                    
+                    @if($totalItems > 0)
+                        <span class="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                            {{ $totalItems }}
+                        </span>
+                    @endif
+                </x-responsive-nav-link>
+            @endif
+
         </div>
 
         <div class="pt-4 pb-1 border-t border-gray-200">
@@ -110,7 +121,6 @@
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">

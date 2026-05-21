@@ -1,8 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Cocina - Pedidos Activos') }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Cocina - Pedidos Activos') }}
+            </h2>
+            <a href="{{ route('dashboard') }}" class="bg-gray-500 hover:bg-gray-600 text-white text-xs font-bold py-2 px-4 rounded shadow uppercase tracking-wider transition-all">
+                📋 Ir a Panel de Órdenes
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-12">
@@ -21,18 +26,29 @@
 
                         <div class="mb-5">
                             <button onclick="abrirModal({{ json_encode($orden) }})" class="w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold py-2 rounded border border-gray-300 transition-all">
-                                🔍 Ver Productos del Pedido
+                                Ver Productos del Pedido
                             </button>
                         </div>
                         
-                        <div class="flex justify-end">
+                        <div class="flex flex-col space-y-2">
                             <form action="{{ route('cocina.marcarLista', $orden->id) }}" method="POST" class="w-full">
                                 @csrf
                                 <button type="submit" class="w-full text-center bg-zinc-800 hover:bg-zinc-900 text-white text-xs font-bold py-2 px-4 rounded shadow uppercase tracking-wider">
                                     {{ $orden->estado === 'en espera' ? 'Empezar a Preparar' : 'Marcar como Listo' }}
                                 </button>
                             </form>
+
+                            @if($orden->estado === 'en espera')
+                                <form action="{{ route('cocina.cancelar', $orden->id) }}" method="POST" class="w-full" onsubmit="return confirm('¿Estás seguro de que deseas cancelar este pedido?');">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit" class="w-full text-center bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-4 rounded shadow uppercase tracking-wider transition-all">
+                                        Cancelar Orden
+                                    </button>
+                                </form>
+                            @endif
                         </div>
+
                     </div>
                 @empty
                     <div class="col-span-3 bg-white p-8 rounded-lg shadow text-center italic text-gray-500">
@@ -85,7 +101,6 @@
 
     <script>
         function abrirModal(orden) {
-            // Lo primero que hacemos es forzar la aparición de la ventana quitando el hidden
             document.getElementById('modalDesglose').classList.remove('hidden');
 
             document.getElementById('modalTitulo').innerText = "PEDIDO #" + String(orden.id).padStart(3, '0');
@@ -95,14 +110,11 @@
             const tablaCuerpo = document.getElementById('modalTablaCuerpo');
             tablaCuerpo.innerHTML = ''; 
 
-            // Validamos el campo que viene en tu JSON de la captura: 'detalles_orden'
             const productos = orden.detalles_orden;
 
             if (productos && productos.length > 0) {
                 productos.forEach(function(detalle) {
                     const precio = parseFloat(detalle.precio_unitario || 0).toFixed(2);
-                    
-                    // Como tus campos de nombre y descripción vienen directo en el detalle, los leemos de inmediato
                     const nombrePlatillo = detalle.nombre || (detalle.platillo ? detalle.platillo.nombre : "Platillo #" + detalle.platillo_id);
 
                     const fila = "<tr>" +
