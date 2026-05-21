@@ -184,7 +184,7 @@ class RestauranteSeede extends Seeder
         $orden3 = Orden::create([
             'user_id' => $userId,
             'total' => 118.00,
-            'estado' => 'en preparacion',
+            'estado' => 'en espera',
         ]);
 
         DetalleOrden::create([

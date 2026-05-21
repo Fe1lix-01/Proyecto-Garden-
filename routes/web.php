@@ -8,6 +8,7 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrdenController;
 use App\Http\Controllers\CocinaController;
 use App\Http\Middleware\RoleMiddleware; 
+use App\Models\Orden; // <-- Importación agregada correctamente
 
 // Ruta de bienvenida
 Route::get('/', function () {
@@ -27,8 +28,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ------------------------------------------
     Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
         
+        // CORREGIDO: Carga los pedidos activos para la cocina unificada antes de renderizar la vista
         Route::get('/admin/dashboard', function () {
-            return view('admin.dashboard'); 
+            $ordenes = Orden::whereIn('estado', ['en espera', 'en_preparacion'])
+                            ->with('detallesOrden.platillo')
+                            ->get();
+
+            return view('admin.dashboard', compact('ordenes')); 
         })->name('admin.dashboard');
 
         Route::patch('/admin/platillos/{platillo}/toggle', [PlatilloController::class, 'toggleDisponibilidad'])
@@ -44,11 +50,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'destroy' => 'admin.platillos.destroy',
             ])->except(['show']);
     
-        Route::get('/cocina', [CocinaController::class, 'index'])->name('cocina.index');
+        // Rutas de procesamiento (Eliminamos la ruta GET /cocina que cargaba la vista vieja)
         Route::post('/cocina/orden/{id}/lista', [CocinaController::class, 'marcarComoLista'])->name('cocina.marcarLista');
         Route::put('/cocina/cancelar/{id}', [CocinaController::class, 'cancelarOrden'])->name('cocina.cancelar');
     });
-    
+
     // ------------------------------------------
     // ROLES: CLIENTE
     // ------------------------------------------
