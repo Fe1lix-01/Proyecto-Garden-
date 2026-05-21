@@ -1,20 +1,83 @@
 <?php
 
+use App\Http\Controllers\PlatilloController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route; 
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\OrdenController;
+use App\Http\Controllers\CocinaController;
+use App\Http\Middleware\RoleMiddleware; 
+use App\Models\Orden; // <-- Importación agregada correctamente
 
+// Ruta de bienvenida
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    // Perfil de usuario (Común para todos los usuarios logueados)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+
+    // ------------------------------------------
+    // ROLES: ADMINISTRADOR
+    // ------------------------------------------
+    Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
+        
+        // CORREGIDO: Carga los pedidos activos para la cocina unificada antes de renderizar la vista
+        Route::get('/admin/dashboard', function () {
+            $ordenes = Orden::whereIn('estado', ['en espera', 'en_preparacion'])
+                            ->with('detallesOrden.platillo')
+                            ->get();
+
+            return view('admin.dashboard', compact('ordenes')); 
+        })->name('admin.dashboard');
+
+        Route::patch('/admin/platillos/{platillo}/toggle', [PlatilloController::class, 'toggleDisponibilidad'])
+            ->name('admin.platillos.toggle');
+
+        Route::resource('/admin/platillos', PlatilloController::class)
+            ->names([
+                'index'   => 'admin.platillos.index',
+                'create'  => 'admin.platillos.create',
+                'store'   => 'admin.platillos.store',
+                'edit'    => 'admin.platillos.edit',
+                'update'  => 'admin.platillos.update',
+                'destroy' => 'admin.platillos.destroy',
+            ])->except(['show']);
+    
+        // Rutas de procesamiento (Eliminamos la ruta GET /cocina que cargaba la vista vieja)
+        Route::post('/cocina/orden/{id}/lista', [CocinaController::class, 'marcarComoLista'])->name('cocina.marcarLista');
+        Route::put('/cocina/cancelar/{id}', [CocinaController::class, 'cancelarOrden'])->name('cocina.cancelar');
+    });
+
+    // ------------------------------------------
+    // ROLES: CLIENTE
+    // ------------------------------------------
+    Route::middleware([RoleMiddleware::class . ':cliente'])->group(function () {
+        
+        Route::get('/cliente/home', [MenuController::class, 'index'])->name('cliente.home');
+
+        Route::get('/cliente/carrito', function () {
+            return view('cliente.carrito');
+        })->name('cliente.carrito');
+
+        // Corregido de 'guardad' a 'guardar' para que coincida con tu lógica previa
+        Route::post('/ordenes/guardar', [OrdenController::class, 'store'])->name('ordenes.store');
+    });
+
+    // Redirección inteligente de Breeze basada en Roles
+    Route::get('/dashboard', function () {
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+        return redirect()->route('cliente.home');
+    })->name('dashboard');
+
+}); 
 
 require __DIR__.'/auth.php';
