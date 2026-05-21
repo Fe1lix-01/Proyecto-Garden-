@@ -5,6 +5,8 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route; 
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\OrdenController;
+use App\Http\Controllers\CocinaController;
 
 
 // Ruta de bienvenida
@@ -42,6 +44,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'destroy' => 'admin.platillos.destroy',
         ])->except(['show']); // Excluimos 'show' porque no lo vamos a usar
 
+    // Ruta para el Panel del Cocinero
+    Route::get('/cocina', [CocinaController::class, 'index'])->name('cocina.index');
+    Route::post('/cocina/orden/{id}/lista', [CocinaController::class, 'marcarComoLista'])->name('cocina.marcarLista');
+
     // 3. Ruta para el Cliente
     Route::get('/cliente/home', [MenuController::class, 'index'])->name('cliente.home');
 
@@ -50,7 +56,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('cliente.carrito');
 
     Route::post('/ordenes/guardad', [OrdenController::class, 'store'])->name('ordenes.store');
-
 
      //Redirección inteligente de Breeze basada en Roles
     Route::get('/dashboard', function () {
@@ -64,6 +69,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 require __DIR__.'/auth.php';
 
-// Ruta para el Panel del Cocinero
-Route::get('/cocina', [App\Http\Controllers\CocinaController::class, 'index'])->name('cocina.index');
-Route::post('/cocina/orden/{id}/lista', [App\Http\Controllers\CocinaController::class, 'marcarComoLista'])->name('cocina.marcarLista');
+

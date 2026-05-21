@@ -18,7 +18,7 @@ return new class extends Migration
             // Conexión con el platillo
             $table->foreignId('platillo_id')->constrained('platillos')->onDelete('cascade');
             $table->integer('cantidad');
-            $table->decimal('precio_unitario', 8, 2);
+            $table->decimal('precio', 8, 2);
             $table->decimal('subtotal', 10, 2);
             $table->timestamps();
         });
