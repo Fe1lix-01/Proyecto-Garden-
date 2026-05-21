@@ -5,21 +5,37 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Database\Seeders\RestauranteSeeder;
+
 
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
+    // Comando para ejecutar el seeder:
+    // php artisan migrate:fresh --seed
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Crear un usuario específico (Ideal para tu cuenta de Administrador/Pruebas)
+        User::create([
+            'name' => 'Cocinero',
+            'email' => 'cocinero@gmail.com',
+            'password' => Hash::make('admin123'), // SIEMPRE encripta la contraseña
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Crear otro usuario de prueba con datos distintos si lo necesitas
+        User::create([
+            'name' => 'Jorge',
+            'email' => 'jorge@gmail.com',
+            'password' => Hash::make('Lapapa123'),
+        ]);
+
+        // Llamar a tus otros seeders específicos
+        $this->call([
+            RestauranteSeede::class
+            // Si tienes más, los vas agregando aquí separados por coma:
+            // PlatillosSeeder::class,
         ]);
     }
 }

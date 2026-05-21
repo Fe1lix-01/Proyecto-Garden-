@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\orden;
+use App\Models\Orden;
 use Illuminate\Http\Request;
+use App\Models\DetalleOrden;
+use App\Models\Platillo;
+use Illuminate\Support\Facades\DB;
 
 class OrdenController extends Controller
 {
@@ -28,7 +31,51 @@ class OrdenController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // 1. Decodificamos el JSON que viene del campo 'items'
+        $items = json_decode($request->items, true);
+
+        if (empty($items)) {
+            return back()->with('error', 'El carrito está vacío.');
+        }
+
+        // Usamos una Transacción de BD para que si algo falla, no se cree una orden incompleta
+        return DB::transaction(function () use ($items) {
+            
+            // 2. Crear la cabecera de la Orden
+            $orden = Orden::create([
+                'user_id' => auth()->id(),
+                'estado'  => 'pendiente',
+                'total'   => 0, // Lo calcularemos sumando los detalles
+            ]);
+
+            $totalAcumulado = 0;
+
+            // 3. Crear los detalles y congelar el precio
+            foreach ($items as $item) {
+                // BUSCAMOS EL PRECIO REAL EN LA BD (No confiamos en el JS)
+                $platillo = Platillo::find($item['id']);
+                
+                if ($platillo) {
+                    $subtotal = $platillo->precio * $item['cantidad'];
+                    
+                    DetalleOrden::create([
+                        'orden_id'        => $orden->id,
+                        'platillo_id'     => $platillo->id,
+                        'cantidad'        => $item['cantidad'],
+                        'precio_unitario' => $platillo->precio, // PRECIO CONGELADO
+                        'subtotal'        => $subtotal,
+                    ]);
+
+                    $totalAcumulado += $subtotal;
+                }
+            }
+
+            // 4. Actualizamos el total real de la orden
+            $orden->update(['total' => $totalAcumulado]);
+
+            return redirect()->route('cliente.home')
+                   ->with('success', "Pedido #{$orden->id} realizado con éxito. Total: ${$totalAcumulado}");
+        });
     }
 
     /**

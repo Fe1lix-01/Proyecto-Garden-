@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\detalles_orden;
+use App\Models\DetallesOrden;
 use Illuminate\Http\Request;
 
 class DetallesOrdenController extends Controller
@@ -34,7 +34,7 @@ class DetallesOrdenController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(detalles_orden $detalles_orden)
+    public function show(DetallesOrden $detalles_orden)
     {
         //
     }
@@ -42,7 +42,7 @@ class DetallesOrdenController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(detalles_orden $detalles_orden)
+    public function edit(DetallesOrden $detalles_orden)
     {
         //
     }
@@ -50,7 +50,7 @@ class DetallesOrdenController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, detalles_orden $detalles_orden)
+    public function update(Request $request, DetallesOrden $detalles_orden)
     {
         //
     }
@@ -58,7 +58,7 @@ class DetallesOrdenController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(detalles_orden $detalles_orden)
+    public function destroy(DetallesOrden $detalles_orden)
     {
         //
     }
