@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Cocinero',
             'email' => 'cocinero@gmail.com',
             'password' => Hash::make('admin123'), // SIEMPRE encripta la contraseña
+            'role' => 'admin' // Asignamos el rol de admin para este usuario
         ]);
 
         // Crear otro usuario de prueba con datos distintos si lo necesitas

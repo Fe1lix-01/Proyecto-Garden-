@@ -22,6 +22,10 @@
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                             {{ __('Home - Admin') }}
                         </x-nav-link>
+
+                        <x-nav-link :href="route('admin.platillos.index')" :active="request()->routeIs('admin.platillos.index')">
+                            {{ __('Platillos') }}
+                        </x-nav-link>
                     @else
                         <x-nav-link :href="route('cliente.home')" :active="request()->routeIs('cliente.home')">
                             {{ __('Home') }}
@@ -86,6 +90,10 @@
             @if(Auth::user()->role === 'admin')
                 <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                     {{ __('Dashboard Admin') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('admin.platillos.index')" :active="request()->routeIs('admin.platillos.index')">
+                    {{ __('Gestionar Platillos') }}
                 </x-responsive-nav-link>
             @else
                 <x-responsive-nav-link :href="route('cliente.home')" :active="request()->routeIs('cliente.home')">
