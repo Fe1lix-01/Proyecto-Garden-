@@ -47,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Ruta para el Panel del Cocinero
     Route::get('/cocina', [CocinaController::class, 'index'])->name('cocina.index');
     Route::post('/cocina/orden/{id}/lista', [CocinaController::class, 'marcarComoLista'])->name('cocina.marcarLista');
+    Route::put('/cocina/cancelar/{id}', [CocinaController::class, 'cancelarOrden'])->name('cocina.cancelar');
 
     // 3. Ruta para el Cliente
     Route::get('/cliente/home', [MenuController::class, 'index'])->name('cliente.home');

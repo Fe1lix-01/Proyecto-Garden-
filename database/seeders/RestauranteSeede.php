@@ -127,7 +127,7 @@ class RestauranteSeede extends Seeder
         $orden1 = Orden::create([
             'user_id' => $userId,
             'total' => 133.00,
-            'estado' => 'pendiente', // Ajusta los estados según tus necesidades ('pendiente', 'en proceso')
+            'estado' => 'en espera', // Ajusta los estados según tus necesidades ('pendiente', 'en proceso')
         ]);
 
         DetalleOrden::create([
@@ -159,7 +159,7 @@ class RestauranteSeede extends Seeder
         $orden2 = Orden::create([
             'user_id' => $userId,
             'total' => 82.00,
-            'estado' => 'en proceso',
+            'estado' => 'en espera',
         ]);
 
         DetalleOrden::create([
@@ -184,7 +184,7 @@ class RestauranteSeede extends Seeder
         $orden3 = Orden::create([
             'user_id' => $userId,
             'total' => 118.00,
-            'estado' => 'pendiente',
+            'estado' => 'en preparacion',
         ]);
 
         DetalleOrden::create([
