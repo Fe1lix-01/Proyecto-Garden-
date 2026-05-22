@@ -11,7 +11,7 @@
             @if(session('success'))
                 <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm">
                     <p class="font-bold">¡Listo!</p>
-                    <p>{{ session('success') }}</p>
+                
                 </div>
             @endif
 
@@ -36,9 +36,27 @@
                                                     <p class="text-xl font-black mt-2 text-gray-800">${{ number_format($platillo->precio, 2) }}</p>
                                                 </div>
                                                 
-                                                <form action="/carrito/agregar" method="POST" class="mt-4 flex items-center justify-between border-t border-gray-300 pt-4">
+                                                <form onsubmit="event.preventDefault(); 
+                                                    fetch('{{ route('carrito.agregar.ajax') }}', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type': 'application/json',
+                                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                                        },
+                                                        body: JSON.stringify({
+                                                            platillo_id: {{ $platillo->id }},
+                                                            cantidad: document.getElementById('cantidad_{{ $platillo->id }}').value
+                                                        })
+                                                    })
+                                                    .then(res => res.json())
+                                                    .then(data => {
+                                                        if(data.success) {
+                                                            // Dispara el evento global hacia el layout navigation
+                                                            window.dispatchEvent(new CustomEvent('carrito-actualizado', { detail: { totalItems: data.totalItems } }));
+                                                        }
+                                                    });" 
+                                                    class="mt-4 flex items-center justify-between border-t border-gray-300 pt-4">
                                                     @csrf
-                                                    <input type="hidden" name="platillo_id" value="{{ $platillo->id }}">
                                                     <div class="flex items-center">
                                                         <label for="cantidad_{{ $platillo->id }}" class="mr-2 text-sm font-bold text-gray-700">Cant:</label>
                                                         <input type="number" id="cantidad_{{ $platillo->id }}" name="cantidad" value="1" min="1" class="w-16 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-center">

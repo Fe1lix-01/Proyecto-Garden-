@@ -22,87 +22,60 @@
                                     <th class="px-6 py-3"></th>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-carrito" class="bg-white divide-y divide-gray-200">
-                                </tbody>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @php 
+                                    $carrito = session('carrito', []); 
+                                    $total = 0;
+                                @endphp
+
+                                @if(count($carrito) > 0)
+                                    @foreach($carrito as $id => $item)
+                                        @php 
+                                            $subtotal = $item['precio'] * $item['cantidad']; 
+                                            $total += $subtotal;
+                                        @endphp
+                                        <tr>
+                                            <td class="px-6 py-4 text-sm text-gray-900">{{ $item['nombre'] }}</td>
+                                            <td class="px-6 py-4 text-sm text-gray-600">${{ number_format($item['precio'], 2) }}</td>
+                                            <td class="px-6 py-4 text-sm text-gray-600">{{ $item['cantidad'] }}</td>
+                                            <td class="px-6 py-4 text-sm font-bold text-gray-900">${{ number_format($subtotal, 2) }}</td>
+                                            <td class="px-6 py-4 text-sm text-right">
+                                                <form action="{{ route('carrito.eliminar', $id) }}" method="POST" onsubmit="return confirm('¿Remover este platillo de tu orden?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-900 font-medium">Eliminar</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 italic">Tu carrito está vacío.</td>
+                                    </tr>
+                                @endif
+                            </tbody>
                         </table>
                     </div>
 
                     <div class="flex justify-between items-center border-t pt-4">
                         <div class="text-2xl font-bold text-gray-800">
-                            Total: $<span id="total-pedido">0.00</span>
+                            Total: ${{ number_format($total, 2) }}
                         </div>
                         
-                        <form id="form-confirmar" action="{{ route('ordenes.store') }}" method="POST">
-                            @csrf
-                            {{-- Aquí inyectaremos los datos del carrito de forma oculta --}}
-                            <input type="hidden" name="items" id="items-input">
-                            
-                            <button type="button" onclick="confirmarCompra()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">
-                                Confirmar y Pagar
-                            </button>
-                        </form>
+                        @if(count($carrito) > 0)
+                            <form id="form-confirmar" action="{{ route('ordenes.store') }}" method="POST" onsubmit="return confirm('¿Deseas confirmar tu pedido?');">
+                                @csrf
+                                {{-- Inyectamos los items serializados para que tu OrdenController los procese al guardar --}}
+                                <input type="hidden" name="items" value="{{ json_encode($carrito) }}">
+                                
+                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition shadow">
+                                    Confirmar y Pagar
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    {{-- Script específico para esta pantalla --}}
-    <script src="{{ asset('js/carrito.js') }}"></script>
-    <script>
-        // Función para renderizar el carrito al cargar la página
-        document.addEventListener('DOMContentLoaded', () => {
-            renderizarCarrito();
-        });
-
-        function renderizarCarrito() {
-            const tabla = document.getElementById('tabla-carrito');
-            const totalTxt = document.getElementById('total-pedido');
-            let html = '';
-            let total = 0;
-
-            if (carrito.length === 0) {
-                tabla.innerHTML = '<tr><td colspan="5" class="p-4 text-center">Tu carrito está vacío</td></tr>';
-                return;
-            }
-
-            carrito.forEach((item, index) => {
-                const subtotal = item.precio * item.cantidad;
-                total += subtotal;
-                html += `
-                    <tr>
-                        <td class="px-6 py-4">${item.nombre}</td>
-                        <td class="px-6 py-4">$${item.precio.toFixed(2)}</td>
-                        <td class="px-6 py-4">${item.cantidad}</td>
-                        <td class="px-6 py-4 font-bold">$${subtotal.toFixed(2)}</td>
-                        <td class="px-6 py-4">
-                            <button onclick="eliminarDelCarrito(${index})" class="text-red-600 hover:text-red-900">Eliminar</button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            tabla.innerHTML = html;
-            totalTxt.innerText = total.toFixed(2);
-            document.getElementById('items-input').value = JSON.stringify(carrito);
-        }
-
-        function eliminarDelCarrito(index) {
-            carrito.splice(index, 1);
-            localStorage.setItem('carrito', JSON.stringify(carrito));
-            renderizarCarrito();
-            actualizarContadorGlobal(); // Función que debes tener en carrito.js
-        }
-
-        function confirmarCompra() {
-            if (carrito.length === 0) {
-                alert("El carrito está vacío.");
-                return;
-            }
-            if (confirm("¿Deseas confirmar tu pedido?")) {
-                document.getElementById('form-confirmar').submit();
-                localStorage.removeItem('carrito'); // Limpiamos tras comprar
-            }
-        }
-    </script>
 </x-app-layout>

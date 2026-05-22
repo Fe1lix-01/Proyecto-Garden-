@@ -7,14 +7,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrdenController;
 use App\Http\Controllers\CocinaController;
+use App\Http\Controllers\CarritoController; // <-- Importación agregada para el carrito
 use App\Http\Middleware\RoleMiddleware; 
-use App\Models\Orden; // <-- Importación agregada correctamente
+use App\Models\Orden;
 
 // Ruta de bienvenida
 Route::get('/', function () {
     return view('welcome');
 });
-
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
@@ -28,7 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ------------------------------------------
     Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
         
-        // CORREGIDO: Carga los pedidos activos para la cocina unificada antes de renderizar la vista
+        // Carga los pedidos activos para la cocina unificada antes de renderizar la vista
         Route::get('/admin/dashboard', function () {
             $ordenes = Orden::whereIn('estado', ['en espera', 'en_preparacion'])
                             ->with('detallesOrden.platillo')
@@ -50,7 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'destroy' => 'admin.platillos.destroy',
             ])->except(['show']);
     
-        // Rutas de procesamiento (Eliminamos la ruta GET /cocina que cargaba la vista vieja)
+        // Rutas de procesamiento de cocina
         Route::post('/cocina/orden/{id}/lista', [CocinaController::class, 'marcarComoLista'])->name('cocina.marcarLista');
         Route::put('/cocina/cancelar/{id}', [CocinaController::class, 'cancelarOrden'])->name('cocina.cancelar');
     });
@@ -62,11 +62,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         Route::get('/cliente/home', [MenuController::class, 'index'])->name('cliente.home');
 
+        // CORREGIDO: llave de cierre del callback agregada correctamente
         Route::get('/cliente/carrito', function () {
             return view('cliente.carrito');
         })->name('cliente.carrito');
 
-        // Corregido de 'guardad' a 'guardar' para que coincida con tu lógica previa
+        // Ruta interactiva para agregar productos al carrito sin recargar pantalla (AJAX)
+        Route::post('/carrito/agregar-ajax', [CarritoController::class, 'agregarAjax'])->name('carrito.agregar.ajax');
+
+        // Ruta para poder eliminar un platillo del carrito desde la vista de confirmación
+        Route::delete('/carrito/eliminar/{id}', [CarritoController::class, 'eliminar'])->name('carrito.eliminar');
+
+        // Guardar la orden final
         Route::post('/ordenes/guardar', [OrdenController::class, 'store'])->name('ordenes.store');
     });
 

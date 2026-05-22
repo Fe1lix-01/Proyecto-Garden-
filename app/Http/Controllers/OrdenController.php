@@ -44,7 +44,7 @@ class OrdenController extends Controller
             // 2. Crear la cabecera de la Orden
             $orden = Orden::create([
                 'user_id' => auth()->id(),
-                'estado'  => 'pendiente',
+                'estado'  => 'en espera',
                 'total'   => 0, // Lo calcularemos sumando los detalles
             ]);
 
@@ -59,11 +59,11 @@ class OrdenController extends Controller
                     $subtotal = $platillo->precio * $item['cantidad'];
                     
                     DetalleOrden::create([
-                        'orden_id'        => $orden->id,
-                        'platillo_id'     => $platillo->id,
-                        'cantidad'        => $item['cantidad'],
-                        'precio_unitario' => $platillo->precio, // PRECIO CONGELADO
-                        'subtotal'        => $subtotal,
+                        'orden_id'    => $orden->id,
+                        'platillo_id' => $platillo->id,
+                        'cantidad'    => $item['cantidad'],
+                        'precio'      => $platillo->precio, // CORREGIDO: Cambiado de 'precio_unitario' a 'precio'
+                        'subtotal'    => $subtotal,
                     ]);
 
                     $totalAcumulado += $subtotal;
@@ -73,8 +73,11 @@ class OrdenController extends Controller
             // 4. Actualizamos el total real de la orden
             $orden->update(['total' => $totalAcumulado]);
 
+            // NUEVO: Vaciamos el carrito de la sesión para que el contador del Navbar regrese a 0
+            session()->forget('carrito');
+
             return redirect()->route('cliente.home')
-                   ->with('success', "Pedido #{$orden->id} realizado con éxito. Total: ${$totalAcumulado}");
+                   ->with('success', "Pedido #{$orden->id} realizado con éxito. Total: $" . number_format($totalAcumulado, 2));
         });
     }
 
