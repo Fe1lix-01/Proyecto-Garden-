@@ -40,7 +40,7 @@
                                             <td class="px-6 py-4 text-sm text-gray-600">{{ $item['cantidad'] }}</td>
                                             <td class="px-6 py-4 text-sm font-bold text-gray-900">${{ number_format($subtotal, 2) }}</td>
                                             <td class="px-6 py-4 text-sm text-right">
-                                                <form action="{{ route('carrito.eliminar', $id) }}" method="POST" onsubmit="return confirm('¿Remover este platillo de tu orden?');">
+                                                <form action="{{ route('carrito.eliminar', $id) }}" method="POST">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-600 hover:text-red-900 font-medium">Eliminar</button>

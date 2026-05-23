@@ -18,7 +18,7 @@ class CocinaController extends Controller
                         ->with('detallesOrden.platillo')
                         ->get();
                         
-        return view('admin.dashboard', compact('ordenes'));
+        return view('admin.monitor_cocina', compact('ordenes'));
     }
 
     /**
@@ -40,7 +40,7 @@ class CocinaController extends Controller
         $orden->save();
 
         // CORREGIDO: Redirecciona al panel unificado de administración
-        return redirect()->route('admin.dashboard')->with('success', 'El estado del pedido #' . $orden->id . ' ha sido actualizado.');
+        return redirect()->route('admin.monitor_cocina')->with('success', 'El estado del pedido #' . $orden->id . ' ha sido actualizado.');
     }
 
     /**
@@ -55,6 +55,6 @@ class CocinaController extends Controller
         $orden->save();
 
         // CORREGIDO: Redirecciona al panel unificado de administración
-        return redirect()->route('admin.dashboard')->with('success', 'El pedido #' . $orden->id . ' fue cancelado correctamente.');
+        return redirect()->route('admin.monitor_cocina')->with('success', 'El pedido #' . $orden->id . ' fue cancelado correctamente.');
     }
 }

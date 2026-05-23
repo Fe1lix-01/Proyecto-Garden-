@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" type="image/jpg" href="{{ asset('img/sapos_guapos.jpg') }}">
 
         <title>{{ config('app.name', 'Sapos Guapos Pizzería') }}</title>
 
@@ -120,6 +121,7 @@
             
             <div class="w-full md:w-1/2 p-8 sm:p-12 md:p-16 flex flex-col justify-between text-center md:text-left bg-white">
                 
+            {{-- Formato aparecido al de defecto
                 <nav class="flex justify-center md:justify-start gap-6 text-sm font-semibold text-gray-600 mb-12">
                     @if (Route::has('login'))
                         @auth
@@ -132,6 +134,7 @@
                         @endauth
                     @endif
                 </nav>
+            --}}
 
                 <div class="space-y-6 my-auto">
                     <h1 class="text-5xl md:text-6xl font-black tracking-tighter text-gray-900 leading-none">

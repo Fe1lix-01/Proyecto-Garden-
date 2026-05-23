@@ -29,14 +29,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
         
         // Carga los pedidos activos para la cocina unificada antes de renderizar la vista
-        Route::get('/admin/dashboard', function () {
+        Route::get('/admin/monitor-cocina', function () {
             $ordenes = Orden::whereIn('estado', ['pendiente', 'en_preparacion'])
                             ->with('detallesOrden.platillo')
                             ->orderBy('created_at', 'asc')
                             ->get();
 
-            return view('admin.dashboard', compact('ordenes')); 
-        })->name('admin.dashboard');
+            return view('admin.monitor_cocina', compact('ordenes')); 
+        })->name('admin.monitor_cocina');
 
         Route::patch('/admin/platillos/{platillo}/toggle', [PlatilloController::class, 'toggleDisponibilidad'])
             ->name('admin.platillos.toggle');
@@ -61,7 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ------------------------------------------
     Route::middleware([RoleMiddleware::class . ':cliente'])->group(function () {
         
-        Route::get('/cliente/home', [MenuController::class, 'index'])->name('cliente.home');
+        Route::get('/cliente/menu-platillos', [MenuController::class, 'index'])->name('cliente.menu_platillos');
 
         // CORREGIDO: llave de cierre del callback agregada correctamente
         Route::get('/cliente/carrito', function () {
@@ -78,16 +78,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/ordenes/guardar', [OrdenController::class, 'store'])->name('ordenes.store');
 
         // Historial de órdenes
-        Route::get('/cliente/ordenes', [OrdenController::class, 'index'])->name('cliente.ordenes');
+        Route::get('/cliente/historial-ordenes', [OrdenController::class, 'index'])->name('cliente.historial-ordenes');
         Route::post('/cliente/ordenes/{id}/cancelar', [OrdenController::class, 'cancelarOrden'])->name('cliente.ordenes.cancelar');
     });
 
     // Redirección inteligente de Breeze basada en Roles
     Route::get('/dashboard', function () {
         if (Auth::user()->role === 'admin') {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.monitor_cocina');
         }
-        return redirect()->route('cliente.home');
+        return redirect()->route('cliente.menu_platillos');
     })->name('dashboard');
 
 }); 

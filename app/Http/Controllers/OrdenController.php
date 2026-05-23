@@ -22,7 +22,7 @@ class OrdenController extends Controller
                     ->get();
 
     // Retornamos la vista del historial del cliente
-    return view('cliente.mis_ordenes', compact('ordenes'));
+    return view('cliente.historial_ordenes', compact('ordenes'));
     }
 
     /**
@@ -83,7 +83,7 @@ class OrdenController extends Controller
             // Reinicio del carrito despues de la compra exitosa
             session()->forget('carrito');
 
-            return redirect()->route('cliente.home')
+            return redirect()->route('cliente.menu_platillos')
                    ->with('success', "Pedido #{$orden->id} realizado con éxito. Total: $" . number_format($totalAcumulado, 2));
         });
     }

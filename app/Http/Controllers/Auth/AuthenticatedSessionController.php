@@ -32,11 +32,11 @@ class AuthenticatedSessionController extends Controller
 
     // Decidimos a dónde mandarlo según su rol
     if ($user->role === 'admin') {
-        return redirect()->intended('/admin/dashboard');
+        return redirect()->intended('/admin/monitor-cocina');
     }
 
     //cualquier otro (cliente) va a su vista
-    return redirect()->intended('/cliente/home');
+    return redirect()->intended('/cliente/menu-platillos');
 }
 
     /**

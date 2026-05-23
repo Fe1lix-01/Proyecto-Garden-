@@ -60,7 +60,7 @@
                                                 Editar
                                             </a>
                                             <span class="text-gray-300">|</span>
-                                            <form action="{{ route('admin.platillos.destroy', $platillo) }}" method="POST" onsubmit="return confirm('¿Seguro que quieres borrar este platillo del menú?');">
+                                            <form action="{{ route('admin.platillos.destroy', $platillo) }}" method="POST">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-900 font-medium text-xs">

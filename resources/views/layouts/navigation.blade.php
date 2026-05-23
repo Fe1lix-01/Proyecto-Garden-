@@ -9,7 +9,7 @@ class="bg-white border-b border-gray-100">
         <div class="flex justify-between h-16">
             <div class="flex">
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('cliente.home') }}">
+                    <a href="{{ Auth::user()->role === 'admin' ? route('admin.monitor_cocina') : route('cliente.menu_platillos') }}">
                         <img src="{{ asset('img/sapos_guapos.jpg') }}" alt="Logo Sapos Guapos" class="block h-10 w-auto rounded-full shadow">
                     </a>
                 </div>
@@ -17,7 +17,7 @@ class="bg-white border-b border-gray-100">
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     
                     @if(Auth::user()->role === 'admin')
-                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                        <x-nav-link :href="route('admin.monitor_cocina')" :active="request()->routeIs('admin.monitor_cocina')">
                             {{ __('Ordenes') }}
                         </x-nav-link>
 
@@ -25,7 +25,7 @@ class="bg-white border-b border-gray-100">
                             {{ __('Platillos') }}
                         </x-nav-link>
                     @else
-                        <x-nav-link :href="route('cliente.home')" :active="request()->routeIs('cliente.home')">
+                        <x-nav-link :href="route('cliente.menu_platillos')" :active="request()->routeIs('cliente.menu_platillos')">
                             {{ __('Menú') }}
                         </x-nav-link> 
 
@@ -36,8 +36,8 @@ class="bg-white border-b border-gray-100">
                             <span x-show="totalItems > 0" x-text="totalItems" id="cart-count" class="ml-2 bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full text-xs font-bold"></span>
                         </x-nav-link>
 
-                        <x-nav-link :href="route('cliente.ordenes')" :active="request()->routeIs('cliente.ordenes')">
-                            {{ __('Mis Ordenes') }}
+                        <x-nav-link :href="route('cliente.historial-ordenes')" :active="request()->routeIs('cliente.historial-ordenes')">
+                            {{ __('Historial') }}
                         </x-nav-link> 
                     @endif
 
@@ -60,7 +60,7 @@ class="bg-white border-b border-gray-100">
 
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
+                            {{ __('Perfil') }}
                         </x-dropdown-link>
 
                         <form method="POST" action="{{ route('logout') }}">
@@ -68,7 +68,7 @@ class="bg-white border-b border-gray-100">
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
-                                {{ __('Log Out') }}
+                                {{ __('Cerrar Sesión') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>
@@ -90,7 +90,7 @@ class="bg-white border-b border-gray-100">
         <div class="pt-2 pb-3 space-y-1">
             
             @if(Auth::user()->role === 'admin')
-                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                <x-responsive-nav-link :href="route('admin.monitor_cocina')" :active="request()->routeIs('admin.monitor_cocina')">
                     {{ __('Ordenes') }}
                 </x-responsive-nav-link>
 
@@ -98,7 +98,7 @@ class="bg-white border-b border-gray-100">
                     {{ __('Gestionar Platillos') }}
                 </x-responsive-nav-link>
             @else
-                <x-responsive-nav-link :href="route('cliente.home')" :active="request()->routeIs('cliente.home')">
+                <x-responsive-nav-link :href="route('cliente.menu_platillos')" :active="request()->routeIs('cliente.menu_platillos')">
                     {{ __('Menú') }}
                 </x-responsive-nav-link>
 
@@ -111,8 +111,8 @@ class="bg-white border-b border-gray-100">
                     <span x-show="totalItems > 0" x-text="totalItems" class="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"></span>
                 </x-responsive-nav-link>
 
-                <x-responsive-nav-link :href="route('cliente.ordenes')" :active="request()->routeIs('cliente.ordenes')">
-                    {{ __('Mis Ordenes') }}
+                <x-responsive-nav-link :href="route('cliente.historial-ordenes')" :active="request()->routeIs('cliente.historial-ordenes')">
+                    {{ __('Historial') }}
                 </x-responsive-nav-link>
             @endif
 
@@ -126,7 +126,7 @@ class="bg-white border-b border-gray-100">
 
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
+                    {{ __('Perfil') }}
                 </x-responsive-nav-link>
 
                 <form method="POST" action="{{ route('logout') }}">
@@ -134,7 +134,7 @@ class="bg-white border-b border-gray-100">
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">
-                        {{ __('Log Out') }}
+                        {{ __('Cerrar Sesión') }}
                     </x-responsive-nav-link>
                 </form>
             </div>
