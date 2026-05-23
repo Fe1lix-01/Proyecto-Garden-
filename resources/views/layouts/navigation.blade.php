@@ -18,7 +18,7 @@ class="bg-white border-b border-gray-100">
                     
                     @if(Auth::user()->role === 'admin')
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                            {{ __('Home - Admin') }}
+                            {{ __('Ordenes') }}
                         </x-nav-link>
 
                         <x-nav-link :href="route('admin.platillos.index')" :active="request()->routeIs('admin.platillos.index')">
@@ -26,8 +26,8 @@ class="bg-white border-b border-gray-100">
                         </x-nav-link>
                     @else
                         <x-nav-link :href="route('cliente.home')" :active="request()->routeIs('cliente.home')">
-                            {{ __('Home') }}
-                        </x-nav-link>
+                            {{ __('Menú') }}
+                        </x-nav-link> 
 
                         <x-nav-link :href="route('cliente.carrito') ?? '/carrito'" :active="request()->routeIs('cliente.carrito') || request()->is('carrito')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -35,6 +35,10 @@ class="bg-white border-b border-gray-100">
                             </svg>
                             <span x-show="totalItems > 0" x-text="totalItems" id="cart-count" class="ml-2 bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full text-xs font-bold"></span>
                         </x-nav-link>
+
+                        <x-nav-link :href="route('cliente.ordenes')" :active="request()->routeIs('cliente.ordenes')">
+                            {{ __('Mis Ordenes') }}
+                        </x-nav-link> 
                     @endif
 
                 </div>
@@ -87,7 +91,7 @@ class="bg-white border-b border-gray-100">
             
             @if(Auth::user()->role === 'admin')
                 <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                    {{ __('Dashboard Admin') }}
+                    {{ __('Ordenes') }}
                 </x-responsive-nav-link>
 
                 <x-responsive-nav-link :href="route('admin.platillos.index')" :active="request()->routeIs('admin.platillos.index')">
@@ -95,7 +99,7 @@ class="bg-white border-b border-gray-100">
                 </x-responsive-nav-link>
             @else
                 <x-responsive-nav-link :href="route('cliente.home')" :active="request()->routeIs('cliente.home')">
-                    {{ __('Home') }}
+                    {{ __('Menú') }}
                 </x-responsive-nav-link>
 
                 <x-responsive-nav-link href="/carrito" :active="request()->is('carrito')" class="flex items-center">
@@ -105,6 +109,10 @@ class="bg-white border-b border-gray-100">
                     Tu Carrito
                     
                     <span x-show="totalItems > 0" x-text="totalItems" class="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"></span>
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('cliente.ordenes')" :active="request()->routeIs('cliente.ordenes')">
+                    {{ __('Mis Ordenes') }}
                 </x-responsive-nav-link>
             @endif
 

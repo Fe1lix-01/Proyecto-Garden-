@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Confirmar mi Pedido') }}
+            {{ __('Orden del Cliente') }}
         </h2>
     </x-slot>
 
@@ -16,7 +16,7 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Platillo</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio Unit.</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio Unitario</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subtotal</th>
                                     <th class="px-6 py-3"></th>
@@ -63,7 +63,7 @@
                         </div>
                         
                         @if(count($carrito) > 0)
-                            <form id="form-confirmar" action="{{ route('ordenes.store') }}" method="POST" onsubmit="return confirm('¿Deseas confirmar tu pedido?');">
+                            <form id="form-confirmar" action="{{ route('ordenes.store') }}" method="POST">
                                 @csrf
                                 {{-- Inyectamos los items serializados para que tu OrdenController los procese al guardar --}}
                                 <input type="hidden" name="items" value="{{ json_encode($carrito) }}">

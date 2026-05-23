@@ -30,8 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         // Carga los pedidos activos para la cocina unificada antes de renderizar la vista
         Route::get('/admin/dashboard', function () {
-            $ordenes = Orden::whereIn('estado', ['en espera', 'en_preparacion'])
+            $ordenes = Orden::whereIn('estado', ['pendiente', 'en_preparacion'])
                             ->with('detallesOrden.platillo')
+                            ->orderBy('created_at', 'asc')
                             ->get();
 
             return view('admin.dashboard', compact('ordenes')); 
@@ -75,6 +76,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Guardar la orden final
         Route::post('/ordenes/guardar', [OrdenController::class, 'store'])->name('ordenes.store');
+
+        // Historial de órdenes
+        Route::get('/cliente/ordenes', [OrdenController::class, 'index'])->name('cliente.ordenes');
+        Route::post('/cliente/ordenes/{id}/cancelar', [OrdenController::class, 'cancelarOrden'])->name('cliente.ordenes.cancelar');
     });
 
     // Redirección inteligente de Breeze basada en Roles

@@ -7,14 +7,6 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            
-            @if(session('success'))
-                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm">
-                    <p class="font-bold">¡Listo!</p>
-                
-                </div>
-            @endif
-
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h3 class="text-2xl font-bold mb-6 border-b pb-4">¿Qué se te antoja pedir hoy?</h3>
@@ -51,7 +43,7 @@
                                                     .then(res => res.json())
                                                     .then(data => {
                                                         if(data.success) {
-                                                            // Dispara el evento global hacia el layout navigation
+                                                            // Dispara el evento global hacia el layout navigation sin alerts molestos
                                                             window.dispatchEvent(new CustomEvent('carrito-actualizado', { detail: { totalItems: data.totalItems } }));
                                                         }
                                                     });" 

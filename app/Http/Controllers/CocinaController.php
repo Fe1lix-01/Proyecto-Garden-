@@ -14,7 +14,7 @@ class CocinaController extends Controller
      */
     public function index()
     {
-        $ordenes = Orden::whereIn('estado', ['en espera', 'en_preparacion'])
+        $ordenes = Orden::whereIn('estado', ['pendiente', 'en_preparacion'])
                         ->with('detallesOrden.platillo')
                         ->get();
                         
@@ -22,19 +22,19 @@ class CocinaController extends Controller
     }
 
     /**
-     * Cambia el estado de la orden de "en espera" -> "en_preparacion" -> "completada"
+     * Cambia el estado de la orden de "pendiente" -> "en_preparacion" -> "lista"
      */
     public function marcarComoLista($id)
     {
         $orden = Orden::findOrFail($id);
         
         // Lógica de fases de la cocina:
-        if ($orden->estado === 'en espera') {
+        if ($orden->estado === 'pendiente') {
             // Si está en espera, pasa a preparación
             $orden->estado = 'en_preparacion';
         } elseif ($orden->estado === 'en_preparacion') {
-            // Si ya se estaba preparando, pasa a completada
-            $orden->estado = 'completada';
+            // Si ya se estaba preparando, pasa a lista
+            $orden->estado = 'lista';
         }
         
         $orden->save();

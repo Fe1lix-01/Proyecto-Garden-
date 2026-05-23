@@ -9,13 +9,13 @@ class CarritoController extends Controller
 {
     public function agregarAjax(Request $request)
     {
-        // 1. Validar que el platillo realmente exista en la base de datos
+        // Validación de que el platillo realmente exista en la base de datos
         $platillo = Platillo::findOrFail($request->platillo_id);
         
-        // 2. Obtener el carrito actual de la sesión (si no existe, inicia vacío)
+        // Obtiene el carrito actual de la sesión (si no existe, inicia vacío)
         $carrito = session()->get('carrito', []);
 
-        // 3. Si el platillo ya estaba, sumamos la cantidad. Si no, lo agregamos.
+        // Si el platillo ya estaba, sumamos la cantidad. Si no, lo agregamos.
         if(isset($carrito[$platillo->id])) {
             $carrito[$platillo->id]['cantidad'] += (int)$request->cantidad;
         } else {
@@ -27,13 +27,13 @@ class CarritoController extends Controller
             ];
         }
 
-        // 4. Guardar el carrito actualizado en la sesión del servidor
+        // Guarda el carrito actualizado en la sesión
         session()->put('carrito', $carrito);
 
-        // 5. Contar el total de ítems acumulados para el círculo del Navbar
+        // Contar el total de ítems acumulados para el círculo del Navbar
         $totalItems = collect($carrito)->sum('cantidad');
 
-        // 6. Responderle a JavaScript con el éxito y el nuevo número total
+        // Respuesta a JavaScript con el éxito y el nuevo número total
         return response()->json([
             'success' => true,
             'totalItems' => $totalItems
