@@ -16,6 +16,6 @@ class MenuController extends Controller
         }])->get();
 
         // 3. Le mandamos esta información a la vista
-        return view('cliente.home', compact('categorias'));
+        return view('cliente.menu_platillos', compact('categorias'));
     }
 }

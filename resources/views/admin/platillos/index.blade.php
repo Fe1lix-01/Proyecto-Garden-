@@ -1,27 +1,19 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Gestión de Platillos e Inventario') }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Platillos en el Menú') }}
+            </h2>
+            <a href="{{ route('admin.platillos.create') }}" 
+                style="background-color: #2563eb !important; color: #ffffff !important;"
+                class="inline-flex items-center font-bold py-2 px-4 rounded shadow-md text-sm uppercase tracking-wider hover:bg-blue-700 transition duration-150">
+                + Nuevo Platillo
+            </a>
+        </div>        
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            
-            <div class="mb-6 flex justify-end">
-                <a href="{{ route('admin.platillos.create') }}" 
-                   style="background-color: #2563eb !important; color: #ffffff !important;"
-                   class="inline-flex items-center font-bold py-2 px-4 rounded shadow-md text-sm uppercase tracking-wider hover:bg-blue-700 transition duration-150">
-                    + Nuevo Platillo
-                </a>
-            </div>
-            
-            @if(session('success'))
-                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative shadow" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                </div>
-            @endif
-
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
 
@@ -68,7 +60,7 @@
                                                 Editar
                                             </a>
                                             <span class="text-gray-300">|</span>
-                                            <form action="{{ route('admin.platillos.destroy', $platillo) }}" method="POST" onsubmit="return confirm('¿Seguro que quieres borrar este platillo del menú?');">
+                                            <form action="{{ route('admin.platillos.destroy', $platillo) }}" method="POST">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-900 font-medium text-xs">

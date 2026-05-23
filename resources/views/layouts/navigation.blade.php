@@ -1,17 +1,15 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    @php
-        $carrito = session('carrito', []);
-        $totalItems = 0;
-        foreach($carrito as $item) {
-            $totalItems += $item['cantidad'];
-        }
-    @endphp
+<nav x-data="{ 
+    open: false, 
+    totalItems: {{ collect(session('carrito', []))->sum('cantidad') }} 
+}" 
+x-on:carrito-actualizado.window="totalItems = $event.detail.totalItems"
+class="bg-white border-b border-gray-100">
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('cliente.home') }}">
+                    <a href="{{ Auth::user()->role === 'admin' ? route('admin.monitor_cocina') : route('cliente.menu_platillos') }}">
                         <img src="{{ asset('img/sapos_guapos.jpg') }}" alt="Logo Sapos Guapos" class="block h-10 w-auto rounded-full shadow">
                     </a>
                 </div>
@@ -19,24 +17,28 @@
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     
                     @if(Auth::user()->role === 'admin')
-                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                            {{ __('Home - Admin') }}
+                        <x-nav-link :href="route('admin.monitor_cocina')" :active="request()->routeIs('admin.monitor_cocina')">
+                            {{ __('Ordenes') }}
                         </x-nav-link>
 
                         <x-nav-link :href="route('admin.platillos.index')" :active="request()->routeIs('admin.platillos.index')">
                             {{ __('Platillos') }}
                         </x-nav-link>
                     @else
-                        <x-nav-link :href="route('cliente.home')" :active="request()->routeIs('cliente.home')">
-                            {{ __('Home') }}
-                        </x-nav-link>
+                        <x-nav-link :href="route('cliente.menu_platillos')" :active="request()->routeIs('cliente.menu_platillos')">
+                            {{ __('Menú') }}
+                        </x-nav-link> 
 
                         <x-nav-link :href="route('cliente.carrito') ?? '/carrito'" :active="request()->routeIs('cliente.carrito') || request()->is('carrito')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
-                            <span id="cart-count" class="ml-2 bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full text-xs font-bold">{{ $totalItems }}</span>
+                            <span x-show="totalItems > 0" x-text="totalItems" id="cart-count" class="ml-2 bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full text-xs font-bold"></span>
                         </x-nav-link>
+
+                        <x-nav-link :href="route('cliente.historial-ordenes')" :active="request()->routeIs('cliente.historial-ordenes')">
+                            {{ __('Historial') }}
+                        </x-nav-link> 
                     @endif
 
                 </div>
@@ -58,7 +60,7 @@
 
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
+                            {{ __('Perfil') }}
                         </x-dropdown-link>
 
                         <form method="POST" action="{{ route('logout') }}">
@@ -66,7 +68,7 @@
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
-                                {{ __('Log Out') }}
+                                {{ __('Cerrar Sesión') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>
@@ -88,16 +90,16 @@
         <div class="pt-2 pb-3 space-y-1">
             
             @if(Auth::user()->role === 'admin')
-                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                    {{ __('Dashboard Admin') }}
+                <x-responsive-nav-link :href="route('admin.monitor_cocina')" :active="request()->routeIs('admin.monitor_cocina')">
+                    {{ __('Ordenes') }}
                 </x-responsive-nav-link>
 
                 <x-responsive-nav-link :href="route('admin.platillos.index')" :active="request()->routeIs('admin.platillos.index')">
                     {{ __('Gestionar Platillos') }}
                 </x-responsive-nav-link>
             @else
-                <x-responsive-nav-link :href="route('cliente.home')" :active="request()->routeIs('cliente.home')">
-                    {{ __('Home') }}
+                <x-responsive-nav-link :href="route('cliente.menu_platillos')" :active="request()->routeIs('cliente.menu_platillos')">
+                    {{ __('Menú') }}
                 </x-responsive-nav-link>
 
                 <x-responsive-nav-link href="/carrito" :active="request()->is('carrito')" class="flex items-center">
@@ -106,11 +108,11 @@
                     </svg>
                     Tu Carrito
                     
-                    @if($totalItems > 0)
-                        <span class="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
-                            {{ $totalItems }}
-                        </span>
-                    @endif
+                    <span x-show="totalItems > 0" x-text="totalItems" class="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"></span>
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('cliente.historial-ordenes')" :active="request()->routeIs('cliente.historial-ordenes')">
+                    {{ __('Historial') }}
                 </x-responsive-nav-link>
             @endif
 
@@ -124,7 +126,7 @@
 
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
+                    {{ __('Perfil') }}
                 </x-responsive-nav-link>
 
                 <form method="POST" action="{{ route('logout') }}">
@@ -132,7 +134,7 @@
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">
-                        {{ __('Log Out') }}
+                        {{ __('Cerrar Sesión') }}
                     </x-responsive-nav-link>
                 </form>
             </div>

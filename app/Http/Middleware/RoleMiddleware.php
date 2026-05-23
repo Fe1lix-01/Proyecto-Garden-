@@ -16,13 +16,12 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        // 1. Verificar si el usuario está logueado
+        // Verificar si el usuario está logueado
         if (!Auth::check()) {
             return redirect()->route('login');
         }
 
-        // 2. Comprobar si el rol del usuario coincide con el requerido
-        // Nota: Si en el futuro agregas un rol 'cocinero', el admin también debería poder entrar a cocina.
+        // Comprobacion del rol del usuario si coincide con el requerido
         if (Auth::user()->role !== $role && Auth::user()->role !== 'admin') {
             // Si no tiene permiso, lo mandamos al dashboard para que su redirección inteligente lo acomode
             return redirect()->route('dashboard')->with('error', 'No tienes acceso a esta sección.');

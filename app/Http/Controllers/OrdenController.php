@@ -15,7 +15,14 @@ class OrdenController extends Controller
      */
     public function index()
     {
-        //
+        // Traemos las órdenes del cliente, ordenadas de la más reciente a la más vieja
+    $ordenes = Orden::where('user_id', auth()->id())
+                    ->with('detallesOrden.platillo') // Con todo y los detalles de la Orden
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+    // Retornamos la vista del historial del cliente
+    return view('cliente.historial_ordenes', compact('ordenes'));
     }
 
     /**
@@ -31,39 +38,39 @@ class OrdenController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Decodificamos el JSON que viene del campo 'items'
+        // Obtenemos los items del carrito desde el JSON enviado de la página
         $items = json_decode($request->items, true);
 
         if (empty($items)) {
             return back()->with('error', 'El carrito está vacío.');
         }
 
-        // Usamos una Transacción de BD para que si algo falla, no se cree una orden incompleta
+        // Usamos una Transacción por que si algo falla, no se cree una orden incompleta
         return DB::transaction(function () use ($items) {
             
-            // 2. Crear la cabecera de la Orden
+            // Comienzo de la Orden
             $orden = Orden::create([
                 'user_id' => auth()->id(),
                 'estado'  => 'pendiente',
-                'total'   => 0, // Lo calcularemos sumando los detalles
+                'total'   => 0
             ]);
 
             $totalAcumulado = 0;
 
-            // 3. Crear los detalles y congelar el precio
+            // Creación de los detalles del pedido
             foreach ($items as $item) {
-                // BUSCAMOS EL PRECIO REAL EN LA BD (No confiamos en el JS)
+                // Se trae el platillo actual de la base de datos para asegurar que exista y obtener su precio actual
                 $platillo = Platillo::find($item['id']);
                 
                 if ($platillo) {
                     $subtotal = $platillo->precio * $item['cantidad'];
                     
                     DetalleOrden::create([
-                        'orden_id'        => $orden->id,
-                        'platillo_id'     => $platillo->id,
-                        'cantidad'        => $item['cantidad'],
-                        'precio_unitario' => $platillo->precio, // PRECIO CONGELADO
-                        'subtotal'        => $subtotal,
+                        'orden_id'    => $orden->id,
+                        'platillo_id' => $platillo->id,
+                        'cantidad'    => $item['cantidad'],
+                        'precio'      => $platillo->precio,
+                        'subtotal'    => $subtotal
                     ]);
 
                     $totalAcumulado += $subtotal;
@@ -73,8 +80,11 @@ class OrdenController extends Controller
             // 4. Actualizamos el total real de la orden
             $orden->update(['total' => $totalAcumulado]);
 
-            return redirect()->route('cliente.home')
-                   ->with('success', "Pedido #{$orden->id} realizado con éxito. Total: ${$totalAcumulado}");
+            // Reinicio del carrito despues de la compra exitosa
+            session()->forget('carrito');
+
+            return redirect()->route('cliente.menu_platillos')
+                   ->with('success', "Pedido #{$orden->id} realizado con éxito. Total: $" . number_format($totalAcumulado, 2));
         });
     }
 
@@ -108,5 +118,20 @@ class OrdenController extends Controller
     public function destroy(orden $orden)
     {
         //
+    }
+
+    public function cancelarOrden($id)
+    {
+        // Buscamos la orden asegurando que pertenezca al cliente logueado
+        $orden = Orden::where('user_id', auth()->id())->findOrFail($id);
+
+        // Regla de negocio: Solo se puede cancelar si está pendiente o en espera
+        if ($orden->estado === 'pendiente') {
+            $orden->estado = 'cancelada';
+            $orden->save();
+            return redirect()->back()->with('success', 'Orden #' . $orden->id . ' cancelada correctamente.');
+        }
+
+        return redirect()->back()->with('error', 'No puedes cancelar una orden que ya está en preparación o lista.');
     }
 }
