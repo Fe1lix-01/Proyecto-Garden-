@@ -20,6 +20,15 @@
         </div>
 
         <div>
+            <x-input-label for="role" value="Tipo de Usuario" />
+            <select id="role" name="role" required class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <option value="cliente" @selected(old('role', 'cliente') === 'cliente')>Cliente</option>
+                <option value="cocinero" @selected(old('role') === 'cocinero')>Cocinero</option>
+            </select>
+            <x-input-error :messages="$errors->get('role')" class="mt-2" />
+        </div>
+
+        <div>
             <x-input-label for="password" value="Contraseña" />
             <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />

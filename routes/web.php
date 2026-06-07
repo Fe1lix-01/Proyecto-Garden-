@@ -1,95 +1,59 @@
 <?php
 
-use App\Http\Controllers\PlatilloController;
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route; 
+use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\CocinaController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrdenController;
-use App\Http\Controllers\CocinaController;
-use App\Http\Controllers\CarritoController; // <-- Importación agregada para el carrito
-use App\Http\Middleware\RoleMiddleware; 
-use App\Models\Orden;
+use App\Http\Controllers\PlatilloController;
+use App\Http\Controllers\ProfileController;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
-// Ruta de bienvenida
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('inicio');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', function () {
+        return Auth::user()->role === User::ROLE_COCINERO
+            ? redirect()->route('cocina.ordenes.index')
+            : redirect()->route('cliente.menu');
+    })->name('dashboard');
 
-    // Perfil de usuario (Común para todos los usuarios logueados)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // ------------------------------------------
-    // ROLES: ADMINISTRADOR
-    // ------------------------------------------
-    Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
-        
-        // Carga los pedidos activos para la cocina unificada antes de renderizar la vista
-        Route::get('/admin/monitor-cocina', function () {
-            $ordenes = Orden::whereIn('estado', ['pendiente', 'en_preparacion'])
-                            ->with('detallesOrden.platillo')
-                            ->orderBy('created_at', 'asc')
-                            ->get();
+    Route::middleware('role:cliente')
+        ->prefix('cliente')
+        ->name('cliente.')
+        ->group(function () {
+            Route::get('menu', [MenuController::class, 'index'])->name('menu');
+            Route::get('carrito', [CarritoController::class, 'index'])->name('carrito');
+            Route::post('carrito/agregar', [CarritoController::class, 'agregarAjax'])->name('carrito.agregar');
+            Route::delete('carrito/{platillo}', [CarritoController::class, 'eliminar'])->name('carrito.eliminar');
 
-            return view('admin.monitor_cocina', compact('ordenes')); 
-        })->name('admin.monitor_cocina');
+            Route::get('ordenes', [OrdenController::class, 'index'])->name('ordenes.index');
+            Route::post('ordenes', [OrdenController::class, 'store'])->name('ordenes.store');
+            Route::patch('ordenes/{orden}/cancelar', [OrdenController::class, 'cancelarOrden'])->name('ordenes.cancelar');
+        });
 
-        Route::patch('/admin/platillos/{platillo}/toggle', [PlatilloController::class, 'toggleDisponibilidad'])
-            ->name('admin.platillos.toggle');
+    Route::middleware('role:cocinero')
+        ->prefix('cocina')
+        ->name('cocina.')
+        ->group(function () {
+            Route::get('ordenes', [CocinaController::class, 'index'])->name('ordenes.index');
+            Route::get('ordenes/{orden}', [CocinaController::class, 'show'])->name('ordenes.show');
+            Route::patch('ordenes/{orden}/avanzar', [CocinaController::class, 'avanzarEstado'])->name('ordenes.avanzar');
+            Route::patch('ordenes/{orden}/cancelar', [CocinaController::class, 'cancelarOrden'])->name('ordenes.cancelar');
 
-        Route::resource('/admin/platillos', PlatilloController::class)
-            ->names([
-                'index'   => 'admin.platillos.index',
-                'create'  => 'admin.platillos.create',
-                'store'   => 'admin.platillos.store',
-                'edit'    => 'admin.platillos.edit',
-                'update'  => 'admin.platillos.update',
-                'destroy' => 'admin.platillos.destroy',
-            ])->except(['show']);
-    
-        // Rutas de procesamiento de cocina
-        Route::post('/cocina/orden/{id}/lista', [CocinaController::class, 'marcarComoLista'])->name('cocina.marcarLista');
-        Route::put('/cocina/cancelar/{id}', [CocinaController::class, 'cancelarOrden'])->name('cocina.cancelar');
-    });
-
-    // ------------------------------------------
-    // ROLES: CLIENTE
-    // ------------------------------------------
-    Route::middleware([RoleMiddleware::class . ':cliente'])->group(function () {
-        
-        Route::get('/cliente/menu-platillos', [MenuController::class, 'index'])->name('cliente.menu_platillos');
-
-        // CORREGIDO: llave de cierre del callback agregada correctamente
-        Route::get('/cliente/carrito', function () {
-            return view('cliente.carrito');
-        })->name('cliente.carrito');
-
-        // Ruta interactiva para agregar productos al carrito sin recargar pantalla (AJAX)
-        Route::post('/carrito/agregar-ajax', [CarritoController::class, 'agregarAjax'])->name('carrito.agregar.ajax');
-
-        // Ruta para poder eliminar un platillo del carrito desde la vista de confirmación
-        Route::delete('/carrito/eliminar/{id}', [CarritoController::class, 'eliminar'])->name('carrito.eliminar');
-
-        // Guardar la orden final
-        Route::post('/ordenes/guardar', [OrdenController::class, 'store'])->name('ordenes.store');
-
-        // Historial de órdenes
-        Route::get('/cliente/historial-ordenes', [OrdenController::class, 'index'])->name('cliente.historial-ordenes');
-        Route::post('/cliente/ordenes/{id}/cancelar', [OrdenController::class, 'cancelarOrden'])->name('cliente.ordenes.cancelar');
-    });
-
-    // Redirección inteligente de Breeze basada en Roles
-    Route::get('/dashboard', function () {
-        if (Auth::user()->role === 'admin') {
-            return redirect()->route('admin.monitor_cocina');
-        }
-        return redirect()->route('cliente.menu_platillos');
-    })->name('dashboard');
-
-}); 
+            Route::patch('platillos/{platillo}/disponibilidad', [PlatilloController::class, 'toggleDisponibilidad'])
+                ->name('platillos.disponibilidad');
+            Route::resource('platillos', PlatilloController::class)
+                ->except(['show'])
+                ->names('platillos');
+        });
+});
 
 require __DIR__.'/auth.php';

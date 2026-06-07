@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();            
             // Relación con el cliente (usuario que hace la orden)
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('estado')->default('pendiente');
+            $table->enum('estado', ['pendiente', 'en_preparacion', 'lista', 'cancelada'])->default('pendiente');
             $table->decimal('total', 10, 2)->default(0);
             $table->timestamps();
         });

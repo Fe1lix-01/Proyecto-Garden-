@@ -10,9 +10,22 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    public const ROLE_CLIENTE = 'cliente';
+    public const ROLE_COCINERO = 'cocinero';
 
-    public function ordenes(){
+    public function ordenes()
+    {
         return $this->hasMany(Orden::class, 'user_id');
+    }
+
+    public function esCliente(): bool
+    {
+        return $this->role === self::ROLE_CLIENTE;
+    }
+
+    public function esCocinero(): bool
+    {
+        return $this->role === self::ROLE_COCINERO;
     }
 
     /** @use HasFactory<UserFactory> */

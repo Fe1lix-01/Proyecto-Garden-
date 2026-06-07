@@ -2,136 +2,107 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Orden;
-use Illuminate\Http\Request;
 use App\Models\DetalleOrden;
+use App\Models\Orden;
 use App\Models\Platillo;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class OrdenController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): View
     {
-        // Traemos las órdenes del cliente, ordenadas de la más reciente a la más vieja
-    $ordenes = Orden::where('user_id', auth()->id())
-                    ->with('detallesOrden.platillo') // Con todo y los detalles de la Orden
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+        $ordenes = Orden::where('user_id', auth()->id())
+            ->with('detalles.platillo')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-    // Retornamos la vista del historial del cliente
-    return view('cliente.historial_ordenes', compact('ordenes'));
+        return view('cliente.historial_ordenes', compact('ordenes'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(): RedirectResponse
     {
-        //
-    }
+        $carrito = session('carrito', []);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        // Obtenemos los items del carrito desde el JSON enviado de la página
-        $items = json_decode($request->items, true);
-
-        if (empty($items)) {
-            return back()->with('error', 'El carrito está vacío.');
+        if (empty($carrito)) {
+            return redirect()
+                ->route('cliente.carrito')
+                ->with('error', 'El carrito esta vacio.');
         }
 
-        // Usamos una Transacción por que si algo falla, no se cree una orden incompleta
-        return DB::transaction(function () use ($items) {
-            
-            // Comienzo de la Orden
-            $orden = Orden::create([
-                'user_id' => auth()->id(),
-                'estado'  => 'pendiente',
-                'total'   => 0
-            ]);
+        $detalles = [];
+        $total = 0;
 
-            $totalAcumulado = 0;
+        foreach ($carrito as $item) {
+            $platillo = Platillo::where('disponible', true)->find($item['id'] ?? null);
+            $cantidad = max(1, (int) ($item['cantidad'] ?? 0));
 
-            // Creación de los detalles del pedido
-            foreach ($items as $item) {
-                // Se trae el platillo actual de la base de datos para asegurar que exista y obtener su precio actual
-                $platillo = Platillo::find($item['id']);
-                
-                if ($platillo) {
-                    $subtotal = $platillo->precio * $item['cantidad'];
-                    
-                    DetalleOrden::create([
-                        'orden_id'    => $orden->id,
-                        'platillo_id' => $platillo->id,
-                        'cantidad'    => $item['cantidad'],
-                        'precio'      => $platillo->precio,
-                        'subtotal'    => $subtotal
-                    ]);
-
-                    $totalAcumulado += $subtotal;
-                }
+            if (! $platillo || $cantidad < 1) {
+                continue;
             }
 
-            // 4. Actualizamos el total real de la orden
-            $orden->update(['total' => $totalAcumulado]);
+            $precioUnitario = (float) $platillo->precio;
+            $subtotal = $precioUnitario * $cantidad;
+            $total += $subtotal;
 
-            // Reinicio del carrito despues de la compra exitosa
-            session()->forget('carrito');
-
-            return redirect()->route('cliente.menu_platillos')
-                   ->with('success', "Pedido #{$orden->id} realizado con éxito. Total: $" . number_format($totalAcumulado, 2));
-        });
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(orden $orden)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(orden $orden)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, orden $orden)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(orden $orden)
-    {
-        //
-    }
-
-    public function cancelarOrden($id)
-    {
-        // Buscamos la orden asegurando que pertenezca al cliente logueado
-        $orden = Orden::where('user_id', auth()->id())->findOrFail($id);
-
-        // Regla de negocio: Solo se puede cancelar si está pendiente o en espera
-        if ($orden->estado === 'pendiente') {
-            $orden->estado = 'cancelada';
-            $orden->save();
-            return redirect()->back()->with('success', 'Orden #' . $orden->id . ' cancelada correctamente.');
+            $detalles[] = [
+                'platillo' => $platillo,
+                'cantidad' => $cantidad,
+                'precio_unitario' => $precioUnitario,
+                'subtotal' => $subtotal,
+            ];
         }
 
-        return redirect()->back()->with('error', 'No puedes cancelar una orden que ya está en preparación o lista.');
+        if (empty($detalles)) {
+            session()->forget('carrito');
+
+            return redirect()
+                ->route('cliente.menu')
+                ->with('error', 'Los platillos del carrito ya no estan disponibles.');
+        }
+
+        $orden = DB::transaction(function () use ($detalles, $total) {
+            $orden = Orden::create([
+                'user_id' => auth()->id(),
+                'estado' => Orden::ESTADO_PENDIENTE,
+                'total' => $total,
+            ]);
+
+            foreach ($detalles as $detalle) {
+                DetalleOrden::create([
+                    'orden_id' => $orden->id,
+                    'platillo_id' => $detalle['platillo']->id,
+                    'cantidad' => $detalle['cantidad'],
+                    'precio_unitario' => $detalle['precio_unitario'],
+                    'subtotal' => $detalle['subtotal'],
+                ]);
+            }
+
+            return $orden;
+        });
+
+        session()->forget('carrito');
+
+        return redirect()
+            ->route('cliente.ordenes.index')
+            ->with('success', 'Orden #' . $orden->id . ' creada correctamente. Total: $' . number_format($total, 2));
+    }
+
+    public function cancelarOrden(Orden $orden): RedirectResponse
+    {
+        abort_if($orden->user_id !== auth()->id(), 403);
+
+        if (! $orden->puedeCancelarse()) {
+            return redirect()
+                ->route('cliente.ordenes.index')
+                ->with('error', 'Solo puedes cancelar ordenes pendientes.');
+        }
+
+        $orden->update(['estado' => Orden::ESTADO_CANCELADA]);
+
+        return redirect()
+            ->route('cliente.ordenes.index')
+            ->with('success', 'Orden #' . $orden->id . ' cancelada correctamente.');
     }
 }

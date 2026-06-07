@@ -3,40 +3,31 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Database\Seeders\RestauranteSeeder;
-
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    // Comando para ejecutar el seeder:
-    // php artisan migrate:fresh --seed
     public function run(): void
     {
-        // Crear un usuario específico (Ideal para tu cuenta de Administrador/Pruebas)
-        User::create([
-            'name' => 'Cocinero',
-            'email' => 'cocinero@gmail.com',
-            'password' => Hash::make('admin123'), // SIEMPRE encripta la contraseña
-            'role' => 'admin' // Asignamos el rol de admin para este usuario
-        ]);
+        User::updateOrCreate(
+            ['email' => 'cocinero@example.com'],
+            [
+                'name' => 'Barra Dream Garden',
+                'password' => Hash::make('password'),
+                'role' => User::ROLE_COCINERO,
+            ]
+        );
 
-        // Crear otro usuario de prueba con datos distintos si lo necesitas
-        User::create([
-            'name' => 'Jorge',
-            'email' => 'jorge@gmail.com',
-            'password' => Hash::make('Lapapa123'),
-        ]);
+        User::updateOrCreate(
+            ['email' => 'cliente@example.com'],
+            [
+                'name' => 'Cliente Dream Garden',
+                'password' => Hash::make('password'),
+                'role' => User::ROLE_CLIENTE,
+            ]
+        );
 
-        // Llamar a tus otros seeders específicos
-        $this->call([
-            RestauranteSeede::class
-            // Si tienes más, los vas agregando aquí separados por coma:
-            // PlatillosSeeder::class,
-        ]);
+        $this->call(RestauranteSeeder::class);
     }
 }

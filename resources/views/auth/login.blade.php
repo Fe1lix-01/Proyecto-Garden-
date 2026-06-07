@@ -4,6 +4,7 @@
     <div class="mb-6">
         <h2 class="text-2xl font-black text-gray-900 tracking-tight">Iniciar Sesión</h2>
         <p class="text-sm text-gray-500 mt-1">Ingresa tus credenciales para acceder al sistema.</p>
+        <p class="text-xs text-gray-400 mt-2">Demo: cliente@example.com / password - cocinero@example.com / password</p>
     </div>
 
     <form method="POST" action="{{ route('login') }}" class="space-y-4">

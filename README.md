@@ -1,59 +1,184 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Dream Garden Polanco - Sistema Web de Ordenes
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplicacion web en Laravel + MySQL para Dream Garden Polanco. Los clientes crean ordenes desde el navegador y el personal de barra/cocina las gestiona por estado.
 
-## About Laravel
+## Funcionalidades
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Registro e inicio de sesion con Laravel Breeze.
+- Roles de usuario: `cliente` y `cocinero`.
+- Middleware `role` para separar rutas y vistas por rol.
+- Cliente:
+  - Ve la carta disponible: bebidas, promociones, botellas, comida y extras.
+  - Agrega productos al carrito con cantidades.
+  - Crea ordenes con calculo automatico de subtotal y total.
+  - Consulta su historial.
+  - Cancela ordenes solo si siguen `pendiente`.
+- Cocinero:
+  - Ve todas las ordenes en un tablero FIFO.
+  - Filtra por estado.
+  - Ve contador de pendientes.
+  - Cambia estados: `pendiente` -> `en_preparacion` -> `lista`.
+  - Cancela ordenes pendientes.
+  - Administra CRUD de productos y disponibilidad.
+- Recarga automatica del panel de cocina cada 10 segundos.
+- Colores por estado: amarillo pendiente, azul preparacion, verde lista, rojo cancelada.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Base de datos
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Tablas principales, sin contar `users`:
 
-## Learning Laravel
+- `categorias`: `id`, `categoria`, `descripcion`.
+- `platillos`: `id`, `nombre`, `descripcion`, `precio`, `disponible`, `categoria_id`. Aunque la tabla se llama `platillos`, se usa para todos los productos de la carta.
+- `ordenes`: `id`, `user_id`, `estado`, `total`.
+- `detalle_orden`: `id`, `orden_id`, `platillo_id`, `cantidad`, `precio_unitario`, `subtotal`.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Relaciones implementadas:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- `User` tiene muchas `Orden`.
+- `Orden` pertenece a `User` y tiene muchos `DetalleOrden`.
+- `DetalleOrden` pertenece a `Orden` y a `Platillo`.
+- `Platillo` pertenece a `Categoria` y tiene muchos `DetalleOrden`.
+- `Categoria` tiene muchos `Platillo`.
 
-## Laravel Sponsors
+## Instalacion en otra laptop
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Requisitos:
 
-### Premium Partners
+- PHP 8.2 o superior.
+- Composer.
+- Node.js y npm.
+- MySQL o MariaDB.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Pasos:
 
-## Contributing
+```bash
+git clone <url-del-repositorio>
+cd Proyecto_Restaurante
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Si no tienes Composer global pero si tienes PHP, puedes usar el archivo incluido:
 
-## Code of Conduct
+```bash
+php composer.phar install
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Crea una base de datos en MySQL:
 
-## Security Vulnerabilities
+```sql
+CREATE DATABASE restaurante_ordenes CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Edita `.env` con tus datos de MySQL:
 
-## License
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=restaurante_ordenes
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Ejecuta migraciones y datos de prueba:
+
+```bash
+php artisan migrate:fresh --seed
+npm run build
+php artisan serve
+```
+
+Abre:
+
+```text
+http://127.0.0.1:8000
+```
+
+Para desarrollo con Vite en vivo:
+
+```bash
+npm run dev
+```
+
+En otra terminal:
+
+```bash
+php artisan serve
+```
+
+## Usuarios de prueba
+
+Despues de `php artisan migrate:fresh --seed`:
+
+```text
+Cliente
+Email: cliente@example.com
+Password: password
+
+Cocinero
+Email: cocinero@example.com
+Password: password
+```
+
+Tambien puedes registrar usuarios nuevos desde `/register` y elegir rol `cliente` o `cocinero`.
+
+## Carta cargada por seeders
+
+Los seeders crean estas secciones:
+
+- `Bebidas`: Cubano, Jackie Chan, Diablo, Linterna Verde, Azulito y Mango en 500 ml a $50 y 1 litro a $80.
+- `Promociones`: 2 bebidas de 500 ml por $80, 2 bebidas de 1 litro por $140, cubeta de cervezas en $180, cerveza 355 ml en $35 y vitrolero de 4 litros en $360.
+- `Botellas`: 10 botellas populares de bar en Mexico con precio.
+- `Comida`: Pizza, Boneless, Papas a la francesa y Maruchan.
+- `Extras`: Cigarro y Vape.
+
+## Borrar datos viejos y cargar los nuevos
+
+Si ya tenias datos de la pizzeria o de otra version, corre:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Ese comando borra las tablas, las vuelve a crear y carga los datos nuevos de Dream Garden Polanco.
+
+Si solo quieres volver a correr los seeders sin recrear tablas, puedes usar:
+
+```bash
+php artisan db:seed
+```
+
+Pero para este cambio conviene usar `migrate:fresh --seed`, porque limpia ordenes y productos anteriores.
+
+## Como funciona
+
+1. El cliente entra al sistema y Laravel lo manda a `/cliente/menu`.
+2. El cliente agrega platillos al carrito. El carrito se guarda en la sesion.
+3. Al confirmar, `OrdenController` recalcula precios desde la base de datos, crea la fila en `ordenes` y despues crea sus filas en `detalle_orden`.
+4. La orden inicia en estado `pendiente`.
+5. El cocinero entra a `/cocina/ordenes`.
+6. El tablero muestra ordenes por hora de llegada, de la mas antigua a la mas nueva.
+7. El cocinero puede avanzar la orden a `en_preparacion` y luego a `lista`.
+8. Si la orden sigue `pendiente`, cliente o cocinero pueden cancelarla.
+
+## Rutas importantes
+
+- `/dashboard`: redireccion por rol.
+- `/cliente/menu`: menu para clientes.
+- `/cliente/carrito`: carrito basico.
+- `/cliente/ordenes`: historial del cliente.
+- `/cocina/ordenes`: tablero de cocina.
+- `/cocina/platillos`: CRUD de platillos.
+
+## Pruebas
+
+Cuando las dependencias esten instaladas:
+
+```bash
+php artisan test
+```
+
+Las pruebas incluyen registro, autenticacion y flujo principal de ordenes.
