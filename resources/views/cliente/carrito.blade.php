@@ -1,12 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-                <h2 class="text-xl font-bold leading-tight text-gray-900">Carrito</h2>
-                <p class="text-sm text-gray-500">Revision final antes de enviar la orden a cocina.</p>
+                <p class="mb-2 text-xs font-black uppercase tracking-[0.25em] text-[#b02f00]">Checkout</p>
+                <h2 class="gf-title">Carrito</h2>
+                <p class="gf-subtitle mt-2">Revision final antes de enviar la orden.</p>
             </div>
 
-            <a href="{{ route('cliente.menu') }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">
+            <a href="{{ route('cliente.menu') }}" class="gf-button-outline">
                 Seguir pidiendo
             </a>
         </div>
@@ -18,64 +19,66 @@
                 $total = collect($carrito)->sum(fn ($item) => $item['precio'] * $item['cantidad']);
             @endphp
 
-            <div class="overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-500">Platillo</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-500">Precio unitario</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-500">Cantidad</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-500">Subtotal</th>
-                                <th class="px-6 py-3 text-right text-xs font-bold uppercase text-gray-500">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            @forelse($carrito as $item)
-                                @php
-                                    $subtotal = $item['precio'] * $item['cantidad'];
-                                @endphp
-                                <tr>
-                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ $item['nombre'] }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">${{ number_format($item['precio'], 2) }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $item['cantidad'] }}</td>
-                                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${{ number_format($subtotal, 2) }}</td>
-                                    <td class="px-6 py-4 text-right text-sm">
-                                        <form action="{{ route('cliente.carrito.eliminar', $item['id']) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="font-semibold text-red-600 hover:text-red-800">
-                                                Eliminar
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="px-6 py-10 text-center text-sm text-gray-500">
-                                        Tu carrito esta vacio.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
+                <section class="gf-card">
+                    <div class="gf-dark-head px-6 py-4">
+                        <h3 class="font-display text-xl font-black">Productos seleccionados</h3>
+                    </div>
+                    <div class="divide-y divide-[#e4e2e0]">
+                        @forelse($carrito as $item)
+                            @php
+                                $subtotal = $item['precio'] * $item['cantidad'];
+                                $itemImagen = ! empty($item['imagen']) ? asset('uploads/'.$item['imagen']) : asset('img/garden.jpeg');
+                            @endphp
+                            <div class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
+                                <div class="flex items-center gap-4">
+                                    <img src="{{ $itemImagen }}" alt="Imagen de {{ $item['nombre'] }}" class="h-16 w-16 shrink-0 rounded-xl object-cover">
+                                    <div>
+                                        <p class="font-display text-xl font-black text-[#1b1c1b]">{{ $item['nombre'] }}</p>
+                                        <p class="mt-1 text-sm text-[#5b4039]">${{ number_format($item['precio'], 2) }} por unidad · {{ $item['cantidad'] }} pieza(s)</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between gap-5 sm:justify-end">
+                                    <p class="font-display text-2xl font-black text-[#b02f00]">${{ number_format($subtotal, 2) }}</p>
+                                    <form action="{{ route('cliente.carrito.eliminar', $item['id']) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="gf-button-danger">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="p-10 text-center text-[#5b4039]">
+                                Tu carrito esta vacio.
+                            </div>
+                        @endforelse
+                    </div>
+                </section>
 
-                <div class="flex flex-col gap-4 border-t border-gray-200 bg-gray-50 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <span class="text-sm font-semibold uppercase text-gray-500">Total</span>
-                        <p class="text-3xl font-black text-gray-950">${{ number_format($total, 2) }}</p>
+                <aside class="gf-card h-fit p-6">
+                    <p class="text-xs font-black uppercase tracking-[0.25em] text-[#b02f00]">Resumen</p>
+                    <div class="mt-5 space-y-4">
+                        <div class="flex justify-between text-sm text-[#5b4039]">
+                            <span>Productos</span>
+                            <span>{{ collect($carrito)->sum('cantidad') }}</span>
+                        </div>
+                        <div class="flex justify-between border-t border-[#e4beb4] pt-4">
+                            <span class="font-display text-2xl font-black">Total</span>
+                            <span class="font-display text-3xl font-black text-[#b02f00]">${{ number_format($total, 2) }}</span>
+                        </div>
                     </div>
 
                     @if(count($carrito) > 0)
-                        <form action="{{ route('cliente.ordenes.store') }}" method="POST">
+                        <form action="{{ route('cliente.ordenes.store') }}" method="POST" class="mt-6">
                             @csrf
-                            <button type="submit" class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-700">
+                            <button type="submit" class="gf-button-primary w-full">
                                 Confirmar orden
                             </button>
                         </form>
                     @endif
-                </div>
+                </aside>
             </div>
         </div>
     </div>

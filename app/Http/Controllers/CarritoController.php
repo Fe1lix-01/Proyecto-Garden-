@@ -30,12 +30,14 @@ class CarritoController extends Controller
 
         if (isset($carrito[$platillo->id])) {
             $carrito[$platillo->id]['cantidad'] += $cantidad;
+            $carrito[$platillo->id]['imagen'] = $platillo->imagen;
         } else {
             $carrito[$platillo->id] = [
                 'id' => $platillo->id,
                 'nombre' => $platillo->nombre,
                 'cantidad' => $cantidad,
                 'precio' => (float) $platillo->precio,
+                'imagen' => $platillo->imagen,
             ];
         }
 

@@ -2,9 +2,10 @@
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <div class="mb-6">
-        <h2 class="text-2xl font-black text-gray-900 tracking-tight">Iniciar Sesión</h2>
-        <p class="text-sm text-gray-500 mt-1">Ingresa tus credenciales para acceder al sistema.</p>
-        <p class="text-xs text-gray-400 mt-2">Demo: cliente@example.com / password - cocinero@example.com / password</p>
+        <p class="mb-2 text-xs font-black uppercase tracking-[0.25em] text-[#b02f00]">Acceso</p>
+        <h2 class="font-display text-3xl font-black text-[#1b1c1b] tracking-tight">Iniciar sesion</h2>
+        <p class="text-sm text-[#5b4039] mt-1">Ingresa tus credenciales para acceder al sistema.</p>
+        <p class="text-xs text-[#907067] mt-2">Demo: cliente@example.com / password - cocinero@example.com / password</p>
     </div>
 
     <form method="POST" action="{{ route('login') }}" class="space-y-4">
@@ -24,8 +25,8 @@
 
         <div class="block">
             <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">Recordar mi sesión</span>
+                <input id="remember_me" type="checkbox" class="rounded border-[#e4beb4] text-[#b02f00] shadow-sm focus:ring-[#ffb5a0]" name="remember">
+                <span class="ms-2 text-sm text-[#5b4039]">Recordar mi sesion</span>
             </label>
         </div>
 
@@ -36,7 +37,7 @@
 
             <div class="text-center">
                 @if (Route::has('password.request'))
-                    <a class="underline text-xs text-gray-600 hover:text-indigo-600 rounded-md focus:outline-none" href="{{ route('password.request') }}">
+                    <a class="underline text-xs text-[#5b4039] hover:text-[#b02f00] rounded-md focus:outline-none" href="{{ route('password.request') }}">
                         ¿Olvidaste tu contraseña?
                     </a>
                 @endif

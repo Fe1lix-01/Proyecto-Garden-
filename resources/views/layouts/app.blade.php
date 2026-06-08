@@ -9,43 +9,47 @@
         <title>{{ config('app.name', 'Dream Garden Polanco') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=outfit:400,500,600,700,800,900|inter:400,500,600,700,800&display=swap" rel="stylesheet" />
 
-        <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-stone-100">
+        @php
+            $isKitchen = Auth::check() && Auth::user()->esCocinero();
+        @endphp
+
+        <div class="min-h-screen gf-bg">
             @include('layouts.navigation')
 
-            @isset($header)
-                <header class="bg-white shadow border-b border-emerald-100">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
-
-            <main>
-                @if(session('success'))
-                    <div class="max-w-7xl mx-auto mb-4 px-4 sm:px-6 lg:px-8">
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                            <span class="block sm:inline">{{ session('success') }}</span>
+            <div class="pt-16 {{ $isKitchen ? 'md:pl-72' : '' }}">
+                @isset($header)
+                    <header class="border-b border-[#e4beb4] bg-[#fbf9f7]/90 backdrop-blur">
+                        <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+                            {{ $header }}
                         </div>
-                    </div>
-                @endif
+                    </header>
+                @endisset
 
-                @if(session('error'))
-                    <div class="max-w-7xl mx-auto mb-4 px-4 sm:px-6 lg:px-8">
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                            <span class="block sm:inline">{{ session('error') }}</span>
+                <main>
+                    @if(session('success'))
+                        <div class="mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:px-8">
+                            <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800" role="alert">
+                                {{ session('success') }}
+                            </div>
                         </div>
-                    </div>
-                @endif
-                
-                {{ $slot }}
-            </main>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:px-8">
+                            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800" role="alert">
+                                {{ session('error') }}
+                            </div>
+                        </div>
+                    @endif
+
+                    {{ $slot }}
+                </main>
+            </div>
         </div>
     </body>
 </html>

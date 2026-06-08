@@ -1,12 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-                <h2 class="text-xl font-bold leading-tight text-gray-900">Detalle de orden #{{ str_pad($orden->id, 3, '0', STR_PAD_LEFT) }}</h2>
-                <p class="text-sm text-gray-500">{{ $orden->user?->name ?? 'Cliente eliminado' }} - {{ $orden->created_at->format('d/m/Y H:i') }}</p>
+                <p class="mb-2 text-xs font-black uppercase tracking-[0.25em] text-[#b02f00]">Detalle de orden</p>
+                <h2 class="gf-title">Orden #{{ str_pad($orden->id, 4, '0', STR_PAD_LEFT) }}</h2>
+                <p class="gf-subtitle mt-2">{{ $orden->user?->name ?? 'Cliente eliminado' }} - {{ $orden->created_at->format('d/m/Y H:i') }}</p>
             </div>
 
-            <a href="{{ route('cocina.ordenes.index') }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">
+            <a href="{{ route('cocina.ordenes.index') }}" class="gf-button-outline">
                 Volver al panel
             </a>
         </div>
@@ -16,10 +17,10 @@
         <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             @php
                 $estadoClases = [
-                    'pendiente' => 'bg-yellow-100 text-yellow-800',
-                    'en_preparacion' => 'bg-blue-100 text-blue-800',
-                    'lista' => 'bg-green-100 text-green-800',
-                    'cancelada' => 'bg-red-100 text-red-800',
+                    'pendiente' => 'gf-status-pendiente',
+                    'en_preparacion' => 'gf-status-preparacion',
+                    'lista' => 'gf-status-lista',
+                    'cancelada' => 'gf-status-cancelada',
                 ];
                 $estadoEtiquetas = [
                     'pendiente' => 'Pendiente',
@@ -29,49 +30,57 @@
                 ];
             @endphp
 
-            <div class="overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm">
-                <div class="flex flex-col gap-4 border-b border-gray-200 bg-gray-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div class="gf-card">
+                <div class="gf-dark-head flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <p class="text-sm font-bold uppercase text-gray-500">Estado</p>
-                        <span class="mt-1 inline-flex rounded-full px-3 py-1 text-xs font-black uppercase {{ $estadoClases[$orden->estado] ?? 'bg-gray-100 text-gray-700' }}">
+                        <p class="text-xs font-black uppercase tracking-wide text-white/70">Estado</p>
+                        <span class="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-black uppercase {{ $estadoClases[$orden->estado] ?? 'bg-gray-100 text-gray-700' }}">
                             {{ $estadoEtiquetas[$orden->estado] ?? $orden->estado }}
                         </span>
                     </div>
-                    <div class="text-left sm:text-right">
-                        <p class="text-sm font-bold uppercase text-gray-500">Total</p>
-                        <p class="text-3xl font-black text-gray-950">${{ number_format($orden->total, 2) }}</p>
+                    <div class="sm:text-right">
+                        <p class="text-xs font-black uppercase tracking-wide text-white/70">Total</p>
+                        <p class="font-display text-4xl font-black text-[#ffb5a0]">${{ number_format($orden->total, 2) }}</p>
                     </div>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-white">
+                    <table class="gf-table">
+                        <thead>
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-500">Platillo</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-500">Cantidad</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-500">Precio unitario</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold uppercase text-gray-500">Subtotal</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio unitario</th>
+                                <th>Subtotal</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
+                        <tbody class="bg-white">
                             @foreach($orden->detalles as $detalle)
                                 <tr>
-                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ $detalle->platillo?->nombre ?? 'Platillo eliminado' }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $detalle->cantidad }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">${{ number_format($detalle->precio_unitario, 2) }}</td>
-                                    <td class="px-6 py-4 text-sm font-bold text-gray-900">${{ number_format($detalle->subtotal, 2) }}</td>
+                                    @php
+                                        $detalleImagen = $detalle->platillo?->imagen ? asset('uploads/'.$detalle->platillo->imagen) : asset('img/garden.jpeg');
+                                    @endphp
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <img src="{{ $detalleImagen }}" alt="Imagen de {{ $detalle->platillo?->nombre ?? 'Producto eliminado' }}" class="h-11 w-11 shrink-0 rounded-lg object-cover">
+                                            <span class="font-bold text-[#1b1c1b]">{{ $detalle->platillo?->nombre ?? 'Producto eliminado' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-[#5b4039]">{{ $detalle->cantidad }}</td>
+                                    <td class="text-[#5b4039]">${{ number_format($detalle->precio_unitario, 2) }}</td>
+                                    <td class="font-black text-[#b02f00]">${{ number_format($detalle->subtotal, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
 
-                <div class="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 p-5 sm:flex-row sm:justify-end">
+                <div class="flex flex-col gap-3 border-t border-[#e4e2e0] bg-[#f5f3f1] p-5 sm:flex-row sm:justify-end">
                     @if($orden->puedeAvanzar())
                         <form action="{{ route('cocina.ordenes.avanzar', $orden) }}" method="POST">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="w-full rounded-md bg-gray-900 px-4 py-2 text-sm font-bold text-white hover:bg-gray-800 sm:w-auto">
+                            <button type="submit" class="gf-button-primary w-full sm:w-auto">
                                 {{ $orden->estado === 'pendiente' ? 'Pasar a preparacion' : 'Marcar lista' }}
                             </button>
                         </form>
@@ -81,7 +90,7 @@
                         <form action="{{ route('cocina.ordenes.cancelar', $orden) }}" method="POST">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="w-full rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 sm:w-auto">
+                            <button type="submit" class="gf-button-danger w-full sm:w-auto">
                                 Cancelar orden
                             </button>
                         </form>

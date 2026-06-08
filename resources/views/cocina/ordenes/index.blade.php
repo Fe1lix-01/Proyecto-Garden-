@@ -1,14 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <h2 class="text-xl font-bold leading-tight text-gray-900">Panel de cocina</h2>
-                <p class="text-sm text-gray-500">Ordenes ordenadas por llegada.</p>
+                <p class="mb-2 text-xs font-black uppercase tracking-[0.25em] text-[#b02f00]">Auto-refresh cada 10s</p>
+                <h2 class="gf-title">Kitchen Status</h2>
+                <p class="gf-subtitle mt-2">Flujo FIFO de ordenes para barra y cocina.</p>
             </div>
 
-            <a href="{{ route('cocina.platillos.index') }}" class="inline-flex items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800">
-                Gestionar platillos
-            </a>
+            <div class="rounded-2xl bg-[#b02f00] px-6 py-5 text-white shadow-xl">
+                <p class="text-xs font-black uppercase tracking-[0.25em] text-white/75">Pendientes</p>
+                <p class="font-display text-5xl font-black leading-none" id="contador-pendientes">{{ $conteos['pendiente'] }}</p>
+            </div>
         </div>
     </x-slot>
 
@@ -16,10 +18,10 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             @php
                 $estadoClases = [
-                    'pendiente' => 'border-yellow-400 bg-yellow-100 text-yellow-800',
-                    'en_preparacion' => 'border-blue-500 bg-blue-100 text-blue-800',
-                    'lista' => 'border-green-500 bg-green-100 text-green-800',
-                    'cancelada' => 'border-red-500 bg-red-100 text-red-800',
+                    'pendiente' => 'gf-status-pendiente',
+                    'en_preparacion' => 'gf-status-preparacion',
+                    'lista' => 'gf-status-lista',
+                    'cancelada' => 'gf-status-cancelada',
                 ];
                 $estadoEtiquetas = [
                     'pendiente' => 'Pendiente',
@@ -28,97 +30,110 @@
                     'cancelada' => 'Cancelada',
                 ];
                 $filtros = [
-                    'activas' => 'Activas',
-                    'pendiente' => 'Pendientes',
-                    'en_preparacion' => 'En preparacion',
-                    'lista' => 'Listas',
-                    'cancelada' => 'Canceladas',
-                    'todas' => 'Todas',
+                    'activas' => ['Activas', $conteos['pendiente'] + $conteos['en_preparacion']],
+                    'pendiente' => ['Pendiente', $conteos['pendiente']],
+                    'en_preparacion' => ['En preparacion', $conteos['en_preparacion']],
+                    'lista' => ['Lista', $conteos['lista']],
+                    'cancelada' => ['Cancelada', $conteos['cancelada']],
+                    'todas' => ['Todas', array_sum($conteos)],
                 ];
             @endphp
 
-            <div id="ordenes-panel">
-                <div class="mb-5 grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-center">
-                    <div class="flex flex-wrap gap-2">
-                        @foreach($filtros as $valor => $texto)
-                            <a href="{{ route('cocina.ordenes.index', ['estado' => $valor]) }}"
-                                class="rounded-full px-3 py-2 text-sm font-bold transition
-                                {{ $filtro === $valor ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50' }}">
-                                {{ $texto }}
-                            </a>
-                        @endforeach
+            <div id="ordenes-panel" class="grid grid-cols-1 gap-6 xl:grid-cols-[320px_1fr]">
+                <aside class="space-y-5">
+                    <div class="gf-panel p-5">
+                        <p class="mb-4 text-sm font-black uppercase tracking-wide text-[#5b4039]">Filtrar por estado</p>
+                        <div class="space-y-3">
+                            @foreach($filtros as $valor => [$texto, $contador])
+                                <a href="{{ route('cocina.ordenes.index', ['estado' => $valor]) }}"
+                                   class="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-black transition
+                                   {{ $filtro === $valor ? 'border-2 border-[#b02f00] bg-[#ffdbd1] text-[#541200]' : 'bg-[#efedec] text-[#5b4039] hover:bg-[#e4e2e0]' }}">
+                                    <span>{{ $texto }}</span>
+                                    <span>{{ $contador }}</span>
+                                </a>
+                            @endforeach
+                        </div>
                     </div>
 
-                    <div class="rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm font-bold text-yellow-800">
-                        Pendientes: <span id="contador-pendientes">{{ $conteos['pendiente'] }}</span>
+                    <div class="rounded-2xl border border-[#e4beb4] bg-[#d7e4ec] p-5 text-[#3c494f]">
+                        <p class="text-xs font-black uppercase tracking-wide">Orden FIFO</p>
+                        <p class="mt-2 font-display text-3xl font-black">{{ $ordenes->count() }} activas</p>
+                        <div class="mt-4 h-2 overflow-hidden rounded-full bg-white">
+                            <div class="h-full w-3/4 rounded-full bg-[#b02f00]"></div>
+                        </div>
                     </div>
-                </div>
+                </aside>
 
-                <div id="ordenes-grid" class="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
+                <section id="ordenes-grid" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     @forelse($ordenes as $orden)
-                        @php
-                            $clases = $estadoClases[$orden->estado] ?? 'border-gray-300 bg-gray-100 text-gray-700';
-                            $borderClass = explode(' ', $clases)[0];
-                            $badgeClass = implode(' ', array_slice(explode(' ', $clases), 1));
-                        @endphp
+                        <article class="gf-card flex min-h-[390px] flex-col">
+                            <div class="gf-dark-head flex items-start justify-between gap-4 px-5 py-4">
+                                <div>
+                                    <p class="text-xs font-bold uppercase tracking-wide text-white/65">Orden</p>
+                                    <h3 class="font-display text-3xl font-black">#{{ str_pad($orden->id, 4, '0', STR_PAD_LEFT) }}</h3>
+                                    <p class="mt-1 text-sm text-white/75">{{ $orden->user?->name ?? 'Cliente eliminado' }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs font-bold text-[#ffb5a0]">{{ $orden->created_at->format('H:i') }}</p>
+                                    <span class="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-black uppercase {{ $estadoClases[$orden->estado] ?? 'bg-gray-100 text-gray-700' }}">
+                                        {{ $estadoEtiquetas[$orden->estado] ?? $orden->estado }}
+                                    </span>
+                                </div>
+                            </div>
 
-                        <article class="flex min-h-[330px] flex-col justify-between rounded-md border border-l-8 bg-white shadow-sm {{ $borderClass }}">
-                            <div class="border-b border-gray-100 bg-gray-50 p-4">
-                                <div class="flex items-start justify-between gap-4">
-                                    <div>
-                                        <h3 class="text-lg font-extrabold text-gray-900">Orden #{{ str_pad($orden->id, 3, '0', STR_PAD_LEFT) }}</h3>
-                                        <p class="text-xs font-medium text-gray-500">{{ $orden->created_at->format('d/m/Y H:i') }}</p>
-                                        <p class="mt-1 text-sm font-semibold text-gray-700">{{ $orden->user?->name ?? 'Cliente eliminado' }}</p>
-                                    </div>
-                                    <p class="text-2xl font-black text-gray-950">${{ number_format($orden->total, 2) }}</p>
+                            <div class="flex-1 p-5">
+                                <ul class="space-y-4">
+                                    @foreach($orden->detalles as $detalle)
+                                        <li class="flex gap-4 border-b border-[#e4e2e0] pb-4">
+                                            <span class="font-display text-xl font-black text-[#b02f00]">{{ $detalle->cantidad }}x</span>
+                                            <div class="flex-1">
+                                                <p class="font-bold text-[#1b1c1b]">{{ $detalle->platillo?->nombre ?? 'Producto eliminado' }}</p>
+                                                <p class="mt-1 text-sm text-[#5b4039]">${{ number_format($detalle->subtotal, 2) }}</p>
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+
+                            <div class="space-y-3 border-t border-[#e4e2e0] bg-[#f5f3f1] p-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-black uppercase text-[#5b4039]">Total</span>
+                                    <span class="font-display text-2xl font-black text-[#b02f00]">${{ number_format($orden->total, 2) }}</span>
                                 </div>
 
-                                <span class="mt-3 inline-flex rounded-full px-2.5 py-1 text-xs font-black uppercase {{ $badgeClass }}">
-                                    {{ $estadoEtiquetas[$orden->estado] ?? $orden->estado }}
-                                </span>
-                            </div>
+                                <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                                    <a href="{{ route('cocina.ordenes.show', $orden) }}" class="gf-button-outline px-3 py-2">
+                                        Detalle
+                                    </a>
 
-                            <div class="space-y-2 p-4">
-                                @foreach($orden->detalles as $detalle)
-                                    <div class="flex justify-between gap-4 text-sm">
-                                        <span class="font-semibold text-gray-700">{{ $detalle->cantidad }}x {{ $detalle->platillo?->nombre ?? 'Platillo eliminado' }}</span>
-                                        <span class="font-bold text-gray-900">${{ number_format($detalle->subtotal, 2) }}</span>
-                                    </div>
-                                @endforeach
-                            </div>
+                                    @if($orden->puedeAvanzar())
+                                        <form action="{{ route('cocina.ordenes.avanzar', $orden) }}" method="POST" class="sm:col-span-1">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="gf-button-primary w-full px-3 py-2">
+                                                {{ $orden->estado === 'pendiente' ? 'Preparamos' : 'Lista' }}
+                                            </button>
+                                        </form>
+                                    @endif
 
-                            <div class="space-y-2 border-t border-gray-100 bg-gray-50 p-3">
-                                <a href="{{ route('cocina.ordenes.show', $orden) }}" class="block rounded-md border border-gray-300 bg-white px-3 py-2 text-center text-xs font-bold uppercase text-gray-700 hover:bg-gray-50">
-                                    Ver detalle
-                                </a>
-
-                                @if($orden->puedeAvanzar())
-                                    <form action="{{ route('cocina.ordenes.avanzar', $orden) }}" method="POST">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit" class="w-full rounded-md bg-gray-900 px-3 py-2 text-xs font-bold uppercase text-white hover:bg-gray-800">
-                                            {{ $orden->estado === 'pendiente' ? 'Pasar a preparacion' : 'Marcar lista' }}
-                                        </button>
-                                    </form>
-                                @endif
-
-                                @if($orden->puedeCancelarse())
-                                    <form action="{{ route('cocina.ordenes.cancelar', $orden) }}" method="POST">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit" class="w-full rounded-md px-3 py-2 text-xs font-bold uppercase text-red-600 hover:bg-red-50 hover:text-red-800">
-                                            Cancelar orden
-                                        </button>
-                                    </form>
-                                @endif
+                                    @if($orden->puedeCancelarse())
+                                        <form action="{{ route('cocina.ordenes.cancelar', $orden) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="gf-button-danger w-full px-3 py-2">
+                                                Cancelar
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
                         </article>
                     @empty
-                        <div class="rounded-md border border-dashed border-gray-300 bg-white p-10 text-center text-gray-500 lg:col-span-2 xl:col-span-3">
+                        <div class="gf-panel p-10 text-center text-[#5b4039] lg:col-span-2">
                             No hay ordenes para este filtro.
                         </div>
                     @endforelse
-                </div>
+                </section>
             </div>
         </div>
     </div>

@@ -19,7 +19,7 @@ Aplicacion web en Laravel + MySQL para Dream Garden Polanco. Los clientes crean 
   - Ve contador de pendientes.
   - Cambia estados: `pendiente` -> `en_preparacion` -> `lista`.
   - Cancela ordenes pendientes.
-  - Administra CRUD de productos y disponibilidad.
+  - Administra CRUD de productos, imagenes y disponibilidad.
 - Recarga automatica del panel de cocina cada 10 segundos.
 - Colores por estado: amarillo pendiente, azul preparacion, verde lista, rojo cancelada.
 
@@ -28,7 +28,7 @@ Aplicacion web en Laravel + MySQL para Dream Garden Polanco. Los clientes crean 
 Tablas principales, sin contar `users`:
 
 - `categorias`: `id`, `categoria`, `descripcion`.
-- `platillos`: `id`, `nombre`, `descripcion`, `precio`, `disponible`, `categoria_id`. Aunque la tabla se llama `platillos`, se usa para todos los productos de la carta.
+- `platillos`: `id`, `nombre`, `descripcion`, `precio`, `disponible`, `imagen`, `categoria_id`. Aunque la tabla se llama `platillos`, se usa para todos los productos de la carta.
 - `ordenes`: `id`, `user_id`, `estado`, `total`.
 - `detalle_orden`: `id`, `orden_id`, `platillo_id`, `cantidad`, `precio_unitario`, `subtotal`.
 
@@ -39,6 +39,67 @@ Relaciones implementadas:
 - `DetalleOrden` pertenece a `Orden` y a `Platillo`.
 - `Platillo` pertenece a `Categoria` y tiene muchos `DetalleOrden`.
 - `Categoria` tiene muchos `Platillo`.
+
+Arquitectura de la base de datos:
+
+```mermaid
+erDiagram
+    USERS ||--o{ ORDENES : crea
+    CATEGORIAS ||--o{ PLATILLOS : clasifica
+    ORDENES ||--o{ DETALLE_ORDEN : contiene
+    PLATILLOS ||--o{ DETALLE_ORDEN : aparece_en
+
+    USERS {
+        bigint id PK
+        string name
+        string email
+        string password
+        string role "cliente o cocinero"
+        timestamp email_verified_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    CATEGORIAS {
+        bigint id PK
+        string categoria
+        text descripcion
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PLATILLOS {
+        bigint id PK
+        string nombre
+        text descripcion
+        decimal precio
+        boolean disponible
+        string imagen
+        bigint categoria_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ORDENES {
+        bigint id PK
+        bigint user_id FK
+        string estado "pendiente, en_preparacion, lista, cancelada"
+        decimal total
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    DETALLE_ORDEN {
+        bigint id PK
+        bigint orden_id FK
+        bigint platillo_id FK
+        int cantidad
+        decimal precio_unitario
+        decimal subtotal
+        timestamp created_at
+        timestamp updated_at
+    }
+```
 
 ## Instalacion en otra laptop
 
@@ -91,6 +152,14 @@ npm run build
 php artisan serve
 ```
 
+Si ya tenias el proyecto instalado y solo jalaste estos cambios, corre:
+
+```bash
+php artisan migrate
+```
+
+Ese comando agrega la columna nueva `imagen` sin borrar tus datos.
+
 Abre:
 
 ```text
@@ -134,6 +203,31 @@ Los seeders crean estas secciones:
 - `Botellas`: 10 botellas populares de bar en Mexico con precio.
 - `Comida`: Pizza, Boneless, Papas a la francesa y Maruchan.
 - `Extras`: Cigarro y Vape.
+
+## Imagenes de productos
+
+Las imagenes publicas viven en:
+
+```text
+public/uploads
+```
+
+Desde el rol `cocinero`, entra a `/cocina/platillos` y usa `Nuevo producto` o `Editar`. Ahi puedes:
+
+- Subir una imagen desde el formulario.
+- Escribir el nombre de una imagen que ya exista en `public/uploads`, por ejemplo `cubano.jpg`.
+- Escribir tambien la ruta `/uploads/cubano.jpg`.
+- Si pusiste la imagen en `uploads` en la raiz del proyecto, tambien puedes escribir el nombre; el sistema la copia a `public/uploads` para que la URL publica funcione.
+
+Si un producto no tiene imagen, el sistema usa `public/img/garden.jpeg` como imagen de respaldo.
+
+Tamano recomendado para pedir imagenes al equipo:
+
+- Ideal: `1200 x 900 px`, formato horizontal `4:3`.
+- Minimo aceptable: `800 x 600 px`.
+- Formatos permitidos: JPG, PNG o WEBP.
+- Peso maximo por archivo: 4 MB.
+- Consejo: producto centrado, buena luz y fondo limpio para que no se corte raro en las tarjetas.
 
 ## Borrar datos viejos y cargar los nuevos
 
